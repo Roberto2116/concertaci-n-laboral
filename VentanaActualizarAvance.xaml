@@ -1,0 +1,36 @@
+﻿<ui:FluentWindow x:Class="Proyecto_GRRLN_expediente.VentanaActualizarAvance"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="Actualizar Avance" Height="250" Width="350"
+                 WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="White">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="ACTUALIZAR AVANCE" FontSize="16" FontWeight="Bold" Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+        <TextBlock x:Name="LblExpediente" Grid.Row="1" Text="Expediente #0" FontSize="14" Foreground="Gray" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+
+        <StackPanel Grid.Row="2" VerticalAlignment="Center">
+            <Slider x:Name="SldAvance" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" 
+                    Margin="10,0" ValueChanged="SldAvance_ValueChanged" Cursor="Hand" Height="26" Width="291"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                <TextBox x:Name="TxtPorcentaje" Text="0" FontSize="24" FontWeight="Bold" Foreground="#27ae60" 
+                         BorderThickness="0" Background="Transparent" TextAlignment="Center" MinWidth="30"
+                         TextChanged="TxtPorcentaje_TextChanged" PreviewTextInput="TxtPorcentaje_PreviewTextInput"/>
+                <TextBlock Text="%" FontSize="24" FontWeight="Bold" Foreground="#27ae60" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <Button Content="Cancelar" Width="100" Height="35" Background="#e74c3c" Foreground="White" FontWeight="Bold" Margin="0,0,15,0" Click="BtnCancelar_Click" Cursor="Hand"/>
+            <Button Content="Guardar" Width="100" Height="35" Background="#27ae60" Foreground="White" FontWeight="Bold" Click="BtnGuardar_Click" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

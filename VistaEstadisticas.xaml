@@ -1,0 +1,484 @@
+﻿<ui:FluentWindow x:Class="Proyecto_GRRLN_expediente.VistaEstadisticas"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:chart="clr-namespace:Syncfusion.UI.Xaml.Charts;assembly=Syncfusion.SfChart.WPF"
+                 xmlns:gauge="clr-namespace:Syncfusion.UI.Xaml.Gauges;assembly=Syncfusion.SfGauge.WPF"
+                 Title="Dashboard de Estadísticas Institucionales" 
+                 Height="720" Width="1280" WindowStartupLocation="CenterScreen" WindowState="Maximized" 
+                 ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" Background="#F0F4F8">
+
+    <ui:FluentWindow.Resources>
+        <Storyboard x:Key="ShowPanelDetailsStoryboard">
+            <DoubleAnimation Storyboard.TargetName="PanelDetalles" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="PanelDetallesRenderTransform" Storyboard.TargetProperty="Y" From="25.0" To="0.0" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <Storyboard x:Key="HidePanelDetailsStoryboard">
+            <DoubleAnimation Storyboard.TargetName="PanelDetalles" Storyboard.TargetProperty="Opacity" From="1.0" To="0.0" Duration="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="PanelDetallesRenderTransform" Storyboard.TargetProperty="Y" From="0.0" To="25.0" Duration="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </ui:FluentWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Sistema de Expedientes - Dashboard Inteligente" />
+
+        <Grid Grid.Row="1" Margin="30,10,30,30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <ui:Button Content="Volver" Icon="ArrowLeft24" Appearance="Secondary" Height="40" Click="BtnRegresar_Click" Margin="0,0,20,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="PANEL DE CONTROL Y PRODUCTIVIDAD" FontSize="26" FontWeight="Black" Foreground="#0F172A"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel x:Name="PanelFiltros" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Desde:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748B" FontWeight="SemiBold"/>
+                    <DatePicker x:Name="DpInicio" Width="120" Height="35" Margin="0,0,15,0" SelectedDateChanged="Filtros_Changed"/>
+                    <TextBlock Text="Hasta:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748B" FontWeight="SemiBold"/>
+                    <DatePicker x:Name="DpFin" Width="120" Height="35" Margin="0,0,20,0" SelectedDateChanged="Filtros_Changed"/>
+                    <TextBlock Text="SAP:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748B" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="CmbFiltroSap" Width="180" Height="35" SelectionChanged="Filtros_Changed"/>
+                </StackPanel>
+            </Grid>
+
+            <TabControl x:Name="MainTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" SelectionChanged="MainTabControl_SelectionChanged">
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <ui:SymbolIcon Symbol="DataBarHorizontal24" Margin="0,0,8,0" FontSize="16"/>
+                            <TextBlock Text="Estadísticas de Asuntos" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </TabItem.Header>
+
+                    <Grid Margin="0,15,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,25">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardTotal_Click" ToolTip="Ver todos los asuntos">
+                                <StackPanel>
+                                    <TextBlock Text="TOTAL ASUNTOS" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
+                                    <TextBlock x:Name="TxtTotal" Text="0" FontSize="36" FontWeight="Black" Foreground="#0F172A"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardCompletados_Click" ToolTip="Ver completados">
+                                <StackPanel>
+                                    <TextBlock Text="COMPLETADOS" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
+                                    <TextBlock x:Name="TxtCompletados" Text="0" FontSize="36" FontWeight="Black" Foreground="#10B981"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="4" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardProceso_Click" ToolTip="Ver asuntos en proceso">
+                                <StackPanel>
+                                    <TextBlock Text="EN PROCESO" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
+                                    <TextBlock x:Name="TxtProceso" Text="0" FontSize="36" FontWeight="Black" Foreground="#F59E0B"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="6" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardVencidos_Click" ToolTip="Ver asuntos vencidos">
+                                <StackPanel>
+                                    <TextBlock Text="VENCIDOS" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
+                                    <TextBlock x:Name="TxtVencidos" Text="0" FontSize="36" FontWeight="Black" Foreground="#EF4444"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid Grid.Row="1">
+                            <Grid x:Name="PanelGraficas" Visibility="Visible">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1.5*"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="1*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0">
+                                        <chart:SfChart x:Name="ChartSemaforo" Header="1. Distribución por SAP">
+                                            <chart:SfChart.Legend>
+                                                <chart:ChartLegend DockPosition="Right" Margin="10,0,0,0"/>
+                                            </chart:SfChart.Legend>
+                                            <chart:SfChart.Behaviors>
+                                                <chart:ChartTooltipBehavior Position="Pointer" HorizontalOffset="15" VerticalOffset="15" ShowDuration="60000"/>
+                                            </chart:SfChart.Behaviors>
+                                            <chart:DoughnutSeries x:Name="DonaSap" XBindingPath="Nombre" YBindingPath="Cantidad" DoughnutCoefficient="0.6" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
+                                                <chart:DoughnutSeries.Resources>
+                                                    <Style TargetType="chart:ChartTooltip">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Padding" Value="0"/>
+                                                        <Setter Property="Margin" Value="0"/>
+                                                    </Style>
+                                                </chart:DoughnutSeries.Resources>
+                                                <chart:DoughnutSeries.AdornmentsInfo>
+                                                    <chart:ChartAdornmentInfo ShowLabel="True" LabelPosition="Inner" ShowConnectorLine="False">
+                                                        <chart:ChartAdornmentInfo.LabelTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                                            </DataTemplate>
+                                                        </chart:ChartAdornmentInfo.LabelTemplate>
+                                                    </chart:ChartAdornmentInfo>
+                                                </chart:DoughnutSeries.AdornmentsInfo>
+                                                <chart:DoughnutSeries.TooltipTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="White" CornerRadius="12" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0" IsHitTestVisible="False">
+                                                            <Border.Effect>
+                                                                <DropShadowEffect Color="#000000" BlurRadius="15" ShadowDepth="3" Opacity="0.1"/>
+                                                            </Border.Effect>
+                                                            <StackPanel Width="280">
+                                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                                                    <ui:SymbolIcon Symbol="Building24" Filled="True" Foreground="#2196F3" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding Item.Nombre}" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                                <Separator Margin="0,0,0,12" Background="#E2E8F0"/>
+                                                                <Grid Margin="0,0,0,6">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel Orientation="Horizontal" Grid.Column="0">
+                                                                        <ui:SymbolIcon Symbol="Folder24" Foreground="#64748B" Margin="0,0,5,0" FontSize="14"/>
+                                                                        <TextBlock Text="Total Asuntos:" Foreground="#64748B" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                    <TextBlock Text="{Binding Item.Cantidad}" Grid.Column="1" Foreground="#0F172A" FontSize="15" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                                <Grid Margin="0,0,0,6">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Top">
+                                                                        <ui:SymbolIcon Symbol="Warning24" Filled="True" Foreground="#EF4444" Margin="0,0,5,0" FontSize="14"/>
+                                                                        <TextBlock Text="Caso Crítico:" Foreground="#64748B" FontSize="13" FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    <TextBlock Text="{Binding Item.AsuntoMasUrgente}" Grid.Column="1" Foreground="#EF4444" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right" TextAlignment="Right" TextWrapping="Wrap" MaxWidth="150"/>
+                                                                </Grid>
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel Orientation="Horizontal" Grid.Column="0">
+                                                                        <ui:SymbolIcon Symbol="Target24" Foreground="#10B981" Margin="0,0,5,0" FontSize="14"/>
+                                                                        <TextBlock Text="Progreso Sede:" Foreground="#64748B" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                    <TextBlock Text="{Binding Item.EficienciaComparativa}" Grid.Column="1" Foreground="#10B981" FontSize="14" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </chart:DoughnutSeries.TooltipTemplate>
+                                            </chart:DoughnutSeries>
+                                        </chart:SfChart>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="2. Promedio de Avance (En el periodo)" HorizontalAlignment="Center" FontSize="16" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                                            <gauge:SfCircularGauge Grid.Row="1">
+                                                <gauge:SfCircularGauge.Scales>
+                                                    <gauge:CircularScale StartValue="0" EndValue="100" Interval="20" RimStroke="#E2E8F0" RimStrokeThickness="15" TickStroke="#64748B" SmallTickStroke="#64748B">
+                                                        <gauge:CircularScale.Pointers>
+                                                            <gauge:CircularPointer x:Name="PunteroAvance" Value="0" NeedlePointerStroke="#0F172A" NeedlePointerStrokeThickness="5" />
+                                                        </gauge:CircularScale.Pointers>
+                                                        <gauge:CircularScale.Ranges>
+                                                            <gauge:CircularRange StartValue="0" EndValue="33" Stroke="#EF4444" StrokeThickness="15"/>
+                                                            <gauge:CircularRange StartValue="33" EndValue="66" Stroke="#F59E0B" StrokeThickness="15"/>
+                                                            <gauge:CircularRange StartValue="66" EndValue="100" Stroke="#10B981" StrokeThickness="15"/>
+                                                        </gauge:CircularScale.Ranges>
+                                                    </gauge:CircularScale>
+                                                </gauge:SfCircularGauge.Scales>
+                                            </gauge:SfCircularGauge>
+                                            <TextBlock x:Name="TxtPromedioGauge" Grid.Row="1" Text="0%" FontSize="22" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                                <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0">
+                                    <chart:SfChart x:Name="ChartTendencia" Header="3. Productividad Diaria">
+                                        <chart:SfChart.Behaviors>
+                                            <chart:ChartTooltipBehavior Position="Pointer"/>
+                                        </chart:SfChart.Behaviors>
+                                        <chart:SfChart.PrimaryAxis>
+                                            <chart:CategoryAxis/>
+                                        </chart:SfChart.PrimaryAxis>
+                                        <chart:SfChart.SecondaryAxis>
+                                            <chart:NumericalAxis ShowGridLines="False"/>
+                                        </chart:SfChart.SecondaryAxis>
+                                        <chart:SfChart.Legend>
+                                            <chart:ChartLegend DockPosition="Top" HorizontalAlignment="Right"/>
+                                        </chart:SfChart.Legend>
+                                        <chart:LineSeries x:Name="LineNuevos" Label="Nuevos Ingresos" XBindingPath="Mes" YBindingPath="Valor" ShowTooltip="True" EnableAnimation="True">
+                                            <chart:LineSeries.Stroke>
+                                                <SolidColorBrush Color="#E67E22"/>
+                                            </chart:LineSeries.Stroke>
+                                        </chart:LineSeries>
+                                        <chart:LineSeries x:Name="LineCerrados" Label="Atendidos/Trabajados" XBindingPath="Mes" YBindingPath="Valor" ShowTooltip="True" EnableAnimation="True">
+                                            <chart:LineSeries.Stroke>
+                                                <SolidColorBrush Color="#2980B9"/>
+                                            </chart:LineSeries.Stroke>
+                                        </chart:LineSeries>
+                                    </chart:SfChart>
+                                </Border>
+                            </Grid>
+                            <Border x:Name="PanelDetalles" Grid.Row="0" Grid.RowSpan="3" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Visibility="Collapsed" Opacity="0">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="PanelDetallesRenderTransform" Y="25"/>
+                                </Border.RenderTransform>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0" Margin="0,0,0,15">
+                                        <TextBlock x:Name="TxtTituloDetalle" Text="Detalle Oficial de Expedientes" FontSize="20" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        <ui:Button Content="Cerrar Detalles" Icon="Dismiss24" Appearance="Danger" HorizontalAlignment="Right" Click="BtnCerrarDetalles_Click"/>
+                                    </Grid>
+                                    <DataGrid x:Name="GridDatosKpi" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0" RowHeight="45">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="NO. EXPEDIENTE" Binding="{Binding ID}"/>
+                                            <DataGridTextColumn Header="SAP" Binding="{Binding SAP}"/>
+                                            <DataGridTextColumn Header="DESCRIPCIÓN CORTA" Binding="{Binding Descripcion}" Width="*"/>
+                                            <DataGridTextColumn Header="FECHA INGRESO" Binding="{Binding FechaRegistro}"/>
+                                            <DataGridTextColumn Header="PORCENTAJE" Binding="{Binding Avance}"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <ui:SymbolIcon Symbol="People24" Margin="0,0,8,0" FontSize="16"/>
+                            <TextBlock Text="Productividad del Personal" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
+
+                    <Grid Margin="0,15,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="20" Margin="0,0,10,0" BorderThickness="1" BorderBrush="#E2E8F0">
+                                <StackPanel>
+                                    <TextBlock Text="TOTAL USUARIOS" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
+                                    <TextBlock x:Name="LblTotalUsuarios" Text="0" FontSize="36" FontWeight="Black" Foreground="#0F172A" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="20" Margin="5,0,5,0" BorderThickness="1" BorderBrush="#E2E8F0">
+                                <StackPanel>
+                                    <TextBlock Text="SESIONES INICIADAS" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
+                                    <TextBlock x:Name="LblTotalSesiones" Text="0" FontSize="36" FontWeight="Black" Foreground="#2196F3" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="20" Margin="5,0,5,0" BorderThickness="1" BorderBrush="#E2E8F0">
+                                <StackPanel>
+                                    <TextBlock Text="SESIONES PROMEDIO" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
+                                    <TextBlock x:Name="LblPromedioSesiones" Text="0" FontSize="36" FontWeight="Black" Foreground="#4CAF50" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="3" Background="White" CornerRadius="8" Padding="20" Margin="10,0,0,0" BorderThickness="1" BorderBrush="#E2E8F0">
+                                <StackPanel>
+                                    <TextBlock Text="MÁS ACTIVO" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
+                                    <TextBlock x:Name="LblTopUsuario" Text="-" FontSize="20" FontWeight="Black" Foreground="#FF9800" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Ranking y Capacidad Operativa" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <DataGrid x:Name="GridRankingPersonal" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="45" HeadersVisibility="Column" SelectionChanged="GridRankingPersonal_SelectionChanged">
+                                        <DataGrid.Resources>
+                                            <Style TargetType="DataGridColumnHeader">
+                                                <Setter Property="Background" Value="#F1F5F9"/>
+                                                <Setter Property="Foreground" Value="#1E293B"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="Padding" Value="10,12"/>
+                                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#CBD5E1"/>
+                                            </Style>
+                                        </DataGrid.Resources>
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="POS." Binding="{Binding Posicion}" Width="60">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="FontWeight" Value="Black"/>
+                                                        <Setter Property="Foreground" Value="#64748B"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Header="FICHA" Binding="{Binding Ficha}" Width="100"/>
+                                            <DataGridTextColumn Header="NOMBRE" Binding="{Binding Nombre}" Width="*"/>
+                                            <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="100"/>
+                                            <DataGridTextColumn Header="SESIONES" Binding="{Binding ContadorSesiones}" Width="90">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                        <Setter Property="Foreground" Value="#2196F3"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTemplateColumn Header="CARGA DE ASUNTOS" Width="180">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="5,0,15,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <ProgressBar Grid.Column="0" Value="{Binding AsuntosGestionados}" Maximum="10" Height="12" Margin="0,0,10,0" BorderThickness="0" Background="#F1F5F9" Foreground="#10B981" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding AsuntosGestionados}" FontWeight="Black" Foreground="#0F172A" VerticalAlignment="Center" FontSize="14"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0">
+                                <Grid x:Name="InnerRadarGrid" Opacity="0.0">
+                                    <Grid.RenderTransform>
+                                        <TranslateTransform x:Name="ChartTranslateTransform" Y="30"/>
+                                    </Grid.RenderTransform>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}}" Value="True">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.7">
+                                                                    <DoubleAnimation.EasingFunction>
+                                                                        <QuadraticEase EasingMode="EaseOut"/>
+                                                                    </DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="30.0" To="0.0" Duration="0:0:0.7">
+                                                                    <DoubleAnimation.EasingFunction>
+                                                                        <QuadraticEase EasingMode="EaseOut"/>
+                                                                    </DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+
+                                    <chart:SfChart Header="Análisis de Habilidades (Selecciona un Usuario)">
+                                        <chart:SfChart.Behaviors>
+                                            <chart:ChartTooltipBehavior Position="Pointer"/>
+                                        </chart:SfChart.Behaviors>
+                                        <chart:SfChart.PrimaryAxis>
+                                            <chart:CategoryAxis/>
+                                        </chart:SfChart.PrimaryAxis>
+                                        <chart:SfChart.SecondaryAxis>
+                                            <chart:NumericalAxis ShowGridLines="True" Minimum="0" Maximum="100"/>
+                                        </chart:SfChart.SecondaryAxis>
+
+                                        <chart:SfChart.Legend>
+                                            <chart:ChartLegend DockPosition="Bottom" HorizontalAlignment="Center" IconWidth="16" IconHeight="16" FontSize="13"/>
+                                        </chart:SfChart.Legend>
+
+                                        <chart:RadarSeries x:Name="RadarEmpleado" Label="Usuario Seleccionado" XBindingPath="Metrica" YBindingPath="Valor" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
+                                            <chart:RadarSeries.Stroke>
+                                                <SolidColorBrush Color="#2196F3"/>
+                                            </chart:RadarSeries.Stroke>
+                                            <chart:RadarSeries.Interior>
+                                                <SolidColorBrush Color="#2196F3" Opacity="0.4"/>
+                                            </chart:RadarSeries.Interior>
+                                        </chart:RadarSeries>
+
+                                        <chart:RadarSeries x:Name="RadarPromedio" Label="Promedio " XBindingPath="Metrica" YBindingPath="Valor" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
+                                            <chart:RadarSeries.Stroke>
+                                                <SolidColorBrush Color="#64748B"/>
+                                            </chart:RadarSeries.Stroke>
+                                            <chart:RadarSeries.Interior>
+                                                <SolidColorBrush Color="#64748B" Opacity="0.2"/>
+                                            </chart:RadarSeries.Interior>
+                                        </chart:RadarSeries>
+                                    </chart:SfChart>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

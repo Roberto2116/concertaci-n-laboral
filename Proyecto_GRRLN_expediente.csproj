@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.82.1" />
+    <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.26914.12004" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.3-preview.1.1" />
+    <PackageReference Include="Syncfusion.Licensing" Version="33.1.44" />
+    <PackageReference Include="Syncfusion.SfChart.WPF" Version="33.1.44" />
+    <PackageReference Include="Syncfusion.SfGauge.WPF" Version="33.1.44" />
+    <PackageReference Include="Syncfusion.SfInput.WPF" Version="33.1.44" />
+    <PackageReference Include="WPF-UI" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="db\practicas.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="imagenes\" />
+  </ItemGroup>
+
+</Project>

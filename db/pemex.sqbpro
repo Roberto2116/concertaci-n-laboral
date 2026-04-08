@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="pemex.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6874"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="AS_CatCentros" custom_title="0" dock_id="1" table="4,13:mainAS_CatCentros"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011e00ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">-- ==========================================
+-- 1. CREACIÓN DE CATÁLOGOS INDEPENDIENTES
+-- ==========================================
+
+CREATE TABLE Cat_SAP (
+    id_sap INTEGER PRIMARY KEY AUTOINCREMENT,
+    Descripcion_sap TEXT 
+);
+
+CREATE TABLE Estatus (
+    id_estatus INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_estatus TEXT,
+    descripcion TEXT
+);
+
+CREATE TABLE Organismos (
+    id_organismo INTEGER PRIMARY KEY AUTOINCREMENT,
+    Organismo TEXT,
+    Descripcion TEXT
+);
+
+CREATE TABLE AS_CatSecSind (
+    SeccionSindical INTEGER PRIMARY KEY,
+    Descripcion TEXT
+);
+
+CREATE TABLE Descripcion_corta (
+    id_descripcionCorta INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_descripcion TEXT
+);
+
+CREATE TABLE AS_CatGerencia (
+    Clave_gerencia INTEGER PRIMARY KEY,
+    Descripcion TEXT,
+    Gerencia TEXT
+);
+
+-- ==========================================
+-- 2. TABLAS INTERMEDIAS Y DEPENDIENTES
+-- ==========================================
+
+CREATE TABLE Subgerencia (
+    Clave_subgerencia INTEGER PRIMARY KEY,
+    nombre_Subgerencia TEXT,
+    clave_gerencia INTEGER,
+    FOREIGN KEY (clave_gerencia) REFERENCES AS_CatGerencia(Clave_gerencia)
+);
+
+CREATE TABLE Dep_personal (
+    clave_depto INTEGER PRIMARY KEY,
+    Nombre_Dep TEXT,
+    clave_subgerencia INTEGER,
+    FOREIGN KEY (clave_subgerencia) REFERENCES Subgerencia(Clave_subgerencia)
+);
+
+CREATE TABLE AS_CatCentros (
+    clave_centro INTEGER PRIMARY KEY,
+    Desc_centroTrabajo TEXT,
+    id_sap INTEGER,
+    Id_organismo INTEGER,
+    clave_gerencia INTEGER,
+    FOREIGN KEY (id_sap) REFERENCES Cat_SAP(id_sap),
+    FOREIGN KEY (Id_organismo) REFERENCES Organismos(id_organismo),
+    FOREIGN KEY (clave_gerencia) REFERENCES AS_CatGerencia(Clave_gerencia)
+);
+
+-- ==========================================
+-- 3. TABLA DE USUARIOS (Seguridad estricta)
+-- ==========================================
+
+CREATE TABLE usuario (
+    Ficha TEXT PRIMARY KEY, 
+    nombre TEXT NOT NULL,
+    contraseña TEXT NOT NULL,
+    Estrato TEXT NOT NULL,
+    clave_depto INTEGER NOT NULL,
+    contador INTEGER NOT NULL DEFAULT 0,
+    tipo TEXT NOT NULL,
+    fecha_ultimaEntrada TEXT NOT NULL, -- Sin valores automáticos, C# obligará el llenado
+    Correo TEXT NOT NULL,
+    FOREIGN KEY (clave_depto) REFERENCES Dep_personal(clave_depto)
+);
+
+-- ==========================================
+-- 4. TABLA PRINCIPAL: ASUNTOS 
+-- ==========================================
+
+CREATE TABLE Asuntos (
+    id_asunto TEXT PRIMARY KEY, 
+    Fecha_recepcion TEXT NOT NULL,
+    Tipo TEXT NOT NULL,
+    Nombre_oficio TEXT NOT NULL DEFAULT 'S/N', 
+    Fecha_oficio TEXT NOT NULL,
+    id_sap INTEGER NOT NULL,
+    clave_depto INTEGER NOT NULL,
+    Agenda TEXT NOT NULL,
+    Sec_Sindical INTEGER NOT NULL,
+    Id_Organismo INTEGER NOT NULL,
+    clave_centroTrabajo INTEGER NOT NULL,
+    id_descripcionCorta INTEGER NOT NULL,
+    Id_estatus INTEGER NOT NULL,
+    Ficha TEXT NOT NULL, 
+    Instruccion TEXT,      
+    Observaciones TEXT,    
+    Fecha_atencion TEXT,   
+    Fecha_Compromiso TEXT NOT NULL,
+    Porcentaje_avance INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_sap) REFERENCES Cat_SAP(id_sap),
+    FOREIGN KEY (clave_depto) REFERENCES Dep_personal(clave_depto),
+    FOREIGN KEY (Sec_Sindical) REFERENCES AS_CatSecSind(SeccionSindical),
+    FOREIGN KEY (Id_Organismo) REFERENCES Organismos(id_organismo),
+    FOREIGN KEY (clave_centroTrabajo) REFERENCES AS_CatCentros(clave_centro),
+    FOREIGN KEY (id_descripcionCorta) REFERENCES Descripcion_corta(id_descripcionCorta),
+    FOREIGN KEY (Id_estatus) REFERENCES Estatus(id_estatus),
+    FOREIGN KEY (Ficha) REFERENCES usuario(Ficha)
+);
+
+-- ==========================================
+-- 5. TABLAS OPERATIVAS (Movimiento Diario)
+-- ==========================================
+
+CREATE TABLE Seguimiento (
+    id_seguimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+    num_Asunto TEXT NOT NULL,
+    Descripcion TEXT NOT NULL,
+    fecha_Seguimiento TEXT NOT NULL,
+    FOREIGN KEY (num_Asunto) REFERENCES Asuntos(id_asunto) ON DELETE CASCADE
+);
+
+CREATE TABLE Mensaje (
+    id_mensaje INTEGER PRIMARY KEY AUTOINCREMENT,
+    ficha TEXT NOT NULL, 
+    Mensaje TEXT NOT NULL,
+    fecha_posteo TEXT NOT NULL,
+    Tipo_alcance TEXT NOT NULL, 
+    Ficha_destino TEXT,             
+    Clave_gerencia_destino INTEGER, 
+    FOREIGN KEY (ficha) REFERENCES usuario(Ficha),
+    FOREIGN KEY (Ficha_destino) REFERENCES usuario(Ficha),
+    FOREIGN KEY (Clave_gerencia_destino) REFERENCES AS_CatGerencia(Clave_gerencia)
+);</sql><current_tab id="0"/></tab_sql></sqlb_project>

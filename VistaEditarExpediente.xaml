@@ -1,0 +1,231 @@
+﻿<ui:FluentWindow x:Class="Proyecto_GRRLN_expediente.VistaEditarExpediente"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="Editar Asunto" Height="800" Width="1350"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 Background="Transparent" 
+                 Loaded="UserControl_Loaded">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Sistema de Expedientes - Edición de Registro" />
+
+        <Grid Grid.Row="1" Margin="20,10,20,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,0,0,20">
+                <ui:Button Content="Cancelar Edición" Icon="Dismiss24" Appearance="Secondary" 
+                           Height="36" Cursor="Hand" Margin="0,0,15,0" 
+                           Click="BtnRegresar_Click"/>
+                <TextBlock Text="MODIFICACIÓN DE ASUNTO" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+
+                <Border Background="White" CornerRadius="8" MaxWidth="1350" HorizontalAlignment="Center" 
+                        BorderBrush="#EAEDED" BorderThickness="1" Padding="30" Margin="0,0,0,20">
+
+                    <Border.Effect>
+                        <DropShadowEffect Color="#DDDDDD" BlurRadius="10" ShadowDepth="2" Opacity="0.4"/>
+                    </Border.Effect>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Background="#EAECEE" CornerRadius="6" Padding="15,10" Margin="0,0,0,20">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="Edit20" Foreground="#2C3E50" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="TxtTituloVista" Text="EDITAR ASUNTO N° " Foreground="#2C3E50" FontWeight="Black" FontSize="16" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                                    <Button x:Name="BtnAvance" Cursor="Hand" Click="BtnAvanceEdicion_Click" Margin="0,0,10,0">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                <Border x:Name="FondoAvance" Background="#FDF2E9" CornerRadius="6" Padding="15,8">
+                                                    <TextBlock Text="Avance" Foreground="#D35400" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="FondoAvance" Property="Background" Value="#FAE5D3"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <Button x:Name="BtnSeguimiento" Cursor="Hand" Click="BtnSeguimientoEdicion_Click" Margin="0,0,10,0">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                <Border x:Name="FondoSeguimiento" Background="#EAF2F8" CornerRadius="6" Padding="15,8">
+                                                    <TextBlock Text="Seguimiento" Foreground="#2874A6" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="FondoSeguimiento" Property="Background" Value="#D4E6F1"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <Button x:Name="BtnEliminar" Cursor="Hand" Width="36" Height="36" Click="BtnEliminarEdicion_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                <Border x:Name="FondoEliminar" Background="#FDEDEC" CornerRadius="18">
+                                                    <ui:SymbolIcon Symbol="Delete24" Foreground="#C0392B" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="FondoEliminar" Property="Background" Value="#FADBD8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <GroupBox Grid.Row="0" Grid.Column="0" Header="Datos del Documento" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20" Padding="15">
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="15"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" Text="Fecha Recepción: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14"/>
+
+                                        <TextBlock Grid.Column="3" Text="Fecha Oficio: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <DatePicker Grid.Column="4" x:Name="DpFechaOficio" Height="35" FontSize="14"/>
+                                    </Grid>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Nombre del Oficio: *" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,10,10,15"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtNombreOficio" Height="70" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14" Margin="0,0,0,15"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo de Asunto: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbTipo" Height="35" FontSize="14" VerticalContentAlignment="Center" Margin="0,0,0,15"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Agenda: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="CmbAgenda" Height="35" FontSize="14" VerticalContentAlignment="Center"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Grid.Row="0" Grid.Column="2" Header="Clasificación y Asignación" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20" Padding="15">
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="15"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Sede SAP: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CmbSAP" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Organismo: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="4" x:Name="CmbOrganismo" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Centro Trabajo: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" x:Name="CmbCentroTrabajo" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="Departamento: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="4" x:Name="CmbDepartamento" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Sección Sind: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbSecSindical" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Desc. Corta: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="4" x:Name="CmbDescCorta" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Header="Detalles del Trámite" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,25" Padding="15">
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Fecha Compromiso: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
+                                    <DatePicker Grid.Row="0" Grid.Column="1" x:Name="DpFechaCompromiso" Width="220" Height="35" FontSize="14" HorizontalAlignment="Left" Margin="0,0,0,15"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Instrucción:" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,10,10,0"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtInstruccion" Height="75" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="Observaciones:" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,10,10,0"/>
+                                    <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtObservaciones" Height="75" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
+                                </Grid>
+                            </GroupBox>
+                        </Grid>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <ui:Button Content="Guardar Cambios" Width="240" Height="45" 
+                                       Appearance="Primary" Background="#2C3E50" BorderThickness="0" 
+                                       Foreground="White" FontWeight="Bold" FontSize="14" Cursor="Hand" Icon="Save24"
+                                       Click="BtnGuardar_Click"/>
+                        </StackPanel>
+
+                    </Grid>
+                </Border>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>
