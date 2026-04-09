@@ -119,7 +119,6 @@ namespace Proyecto_GRRLN_expediente
             }
         }
 
-        // Borré el BtnBuscar_Click porque ya no lo necesitas, ¡ahora es automático!
 
         private void BtnRegresar_Click(object sender, RoutedEventArgs e)
         {
@@ -191,10 +190,9 @@ namespace Proyecto_GRRLN_expediente
                     int dias = (int)diferencia.TotalDays;
 
                     if (dias < 0) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C8102E"));
-                    if (dias <= 3) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E67E22"));
-                    if (dias <= 7) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1C40F"));
+                    if (dias <= 3) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1C40F"));
 
-                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00843D"));
+                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3498DB"));
                 }
 
                 return new SolidColorBrush(Colors.Gray);

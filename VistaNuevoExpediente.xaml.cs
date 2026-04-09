@@ -16,9 +16,12 @@ namespace Proyecto_GRRLN_expediente
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            LblFechaActual.Text = DateTime.Now.ToString("dd/MM/yyyy");
+            LblUsuarioActual.Text = SesionGlobal.Ficha ?? "Desconocido";
+
             ObtenerProximoFolio();
             CargarCatalogos();
-            CargarUsuariosResponsables(); // AHORA SÍ CON LA VALIDACIÓN CORRECTA
+            CargarUsuariosResponsables();
         }
 
         private void ObtenerProximoFolio()
@@ -59,7 +62,6 @@ namespace Proyecto_GRRLN_expediente
                 SqliteConnection conn = DatabaseConnection.GetConnection();
                 if (conn == null) return;
 
-                // 1. Cargar SAPs
                 List<ItemCatalogo> listaSAP = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -69,7 +71,6 @@ namespace Proyecto_GRRLN_expediente
                 }
                 CmbSAP.ItemsSource = listaSAP;
 
-                // 2. Cargar Organismos
                 List<ItemCatalogo> listaOrg = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -79,7 +80,6 @@ namespace Proyecto_GRRLN_expediente
                 }
                 CmbOrganismo.ItemsSource = listaOrg;
 
-                // 3. Cargar Departamentos
                 List<ItemCatalogo> listaDeptos = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -89,7 +89,6 @@ namespace Proyecto_GRRLN_expediente
                 }
                 CmbDepartamento.ItemsSource = listaDeptos;
 
-                // 4. Cargar Secciones Sindicales
                 List<ItemCatalogo> listaSec = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -99,7 +98,6 @@ namespace Proyecto_GRRLN_expediente
                 }
                 CmbSecSindical.ItemsSource = listaSec;
 
-                // 5. Cargar Centros de Trabajo
                 List<ItemCentroTrabajo> listaCentros = new List<ItemCentroTrabajo>();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -118,7 +116,6 @@ namespace Proyecto_GRRLN_expediente
                 }
                 CmbCentroTrabajo.ItemsSource = listaCentros;
 
-                // 6. Cargar Descripción Corta
                 List<ItemCatalogo> listaDescCorta = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -138,9 +135,6 @@ namespace Proyecto_GRRLN_expediente
             }
         }
 
-        // ==============================================================================
-        // CARGAR USUARIOS PARA ASIGNACIÓN (CORREGIDO PARA USAR SesionGlobal.Ficha)
-        // ==============================================================================
         private void CargarUsuariosResponsables()
         {
             try
@@ -149,14 +143,11 @@ namespace Proyecto_GRRLN_expediente
                 if (conn == null) return;
 
                 List<ItemUsuario> listaUsuarios = new List<ItemUsuario>();
-                string miTipo = "OPERADOR"; // Por defecto asumimos el menor permiso
-
-                // Usamos la variable SesionGlobal que tú manejas en tu proyecto
+                string miTipo = "OPERADOR";
                 string miFicha = SesionGlobal.Ficha ?? "admin";
 
                 using (var cmd = conn.CreateCommand())
                 {
-                    // 1. Traemos a todos los usuarios activos
                     cmd.CommandText = "SELECT Ficha, nombre FROM usuario WHERE IFNULL(estatus, 1) = 1";
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -170,7 +161,6 @@ namespace Proyecto_GRRLN_expediente
                         }
                     }
 
-                    // 2. BUSCAMOS TU ROL DIRECTAMENTE EN LA BASE DE DATOS (100% SEGURO)
                     cmd.CommandText = "SELECT tipo FROM usuario WHERE Ficha = $ficha";
                     cmd.Parameters.AddWithValue("$ficha", miFicha);
 
@@ -183,18 +173,15 @@ namespace Proyecto_GRRLN_expediente
 
                 CmbResponsable.ItemsSource = listaUsuarios;
 
-                // 3. APLICAMOS LA REGLA SEGÚN EL ROL ENCONTRADO
                 if (miTipo == "OPERADOR" || miTipo == "CONSULTOR")
                 {
-                    // Bloqueado: Solo se lo puede asignar a sí mismo
                     CmbResponsable.SelectedValue = miFicha;
                     CmbResponsable.IsEnabled = false;
                 }
                 else
                 {
-                    // Desbloqueado: Eres Administrador, Gerente, Jefe... Puedes elegir.
                     CmbResponsable.IsEnabled = true;
-                    CmbResponsable.SelectedValue = miFicha; // Lo deja en tu nombre por comodidad, pero puedes abrirlo
+                    CmbResponsable.SelectedValue = miFicha;
                 }
             }
             catch (Exception ex)
@@ -204,6 +191,14 @@ namespace Proyecto_GRRLN_expediente
             finally
             {
                 DatabaseConnection.CloseConnection();
+            }
+        }
+
+        private void CmbResponsable_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CmbResponsable.SelectedValue != null)
+            {
+                TxtFichaVisual.Text = CmbResponsable.SelectedValue.ToString();
             }
         }
 
@@ -221,41 +216,38 @@ namespace Proyecto_GRRLN_expediente
 
         private void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (!DpFechaRecepcion.SelectedDate.HasValue || !DpFechaOficio.SelectedDate.HasValue || !DpFechaCompromiso.SelectedDate.HasValue)
+            // AHORA CmbDescCorta TAMBIÉN ES OBLIGATORIO Y REQUERIDO ANTES DE AVANZAR
+            if (!DpFechaRecepcion.SelectedDate.HasValue ||
+                string.IsNullOrWhiteSpace(TxtNombreOficio.Text) ||
+                CmbResponsable.SelectedValue == null ||
+                CmbDescCorta.SelectedValue == null ||
+                !DpFechaCompromiso.SelectedDate.HasValue)
             {
-                MessageBox.Show("Por favor, selecciona todas las fechas obligatorias.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(TxtNombreOficio.Text) || CmbTipo.SelectedItem == null || CmbAgenda.SelectedItem == null ||
-                CmbSAP.SelectedValue == null || CmbOrganismo.SelectedValue == null || CmbCentroTrabajo.SelectedValue == null ||
-                CmbDepartamento.SelectedValue == null || CmbSecSindical.SelectedValue == null || CmbDescCorta.SelectedValue == null ||
-                CmbResponsable.SelectedValue == null)
-            {
-                MessageBox.Show("Por favor, llena todos los campos obligatorios de los menús desplegables y asegúrate de elegir un Responsable.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Por favor, llena todos los campos obligatorios marcados con asterisco (*).", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             try
             {
+                // Datos obligatorios
                 string fechaRecepcion = DpFechaRecepcion.SelectedDate.Value.ToString("yyyy-MM-dd");
-                string fechaOficio = DpFechaOficio.SelectedDate.Value.ToString("yyyy-MM-dd");
                 string fechaCompromiso = DpFechaCompromiso.SelectedDate.Value.ToString("yyyy-MM-dd");
-
                 string nombreOficio = TxtNombreOficio.Text.Trim();
-                string tipoAsunto = ((ComboBoxItem)CmbTipo.SelectedItem).Content.ToString();
-                string agenda = ((ComboBoxItem)CmbAgenda.SelectedItem).Content.ToString();
-                string instruccion = TxtInstruccion.Text?.Trim();
-                string observaciones = TxtObservaciones.Text?.Trim();
-
-                long idSap = (long)CmbSAP.SelectedValue;
-                long idOrg = (long)CmbOrganismo.SelectedValue;
-                long idCentro = (long)CmbCentroTrabajo.SelectedValue;
-                long idDepto = (long)CmbDepartamento.SelectedValue;
-                long idSecSindical = (long)CmbSecSindical.SelectedValue;
-                long idDescCorta = (long)CmbDescCorta.SelectedValue;
-
+                string tipoAsunto = "CASO";
                 string fichaResponsable = CmbResponsable.SelectedValue.ToString();
+                long idDescCorta = (long)CmbDescCorta.SelectedValue; // Obligatorio, ya no acepta nulos
+
+                // Datos opcionales (Aceptan nulos sin tronar la BD)
+                object fechaOficio = DpFechaOficio.SelectedDate.HasValue ? DpFechaOficio.SelectedDate.Value.ToString("yyyy-MM-dd") : DBNull.Value;
+                object agenda = CmbAgenda.SelectedItem != null ? ((ComboBoxItem)CmbAgenda.SelectedItem).Content.ToString() : DBNull.Value;
+                object instruccion = string.IsNullOrWhiteSpace(TxtInstruccion.Text) ? DBNull.Value : TxtInstruccion.Text.Trim();
+                object observaciones = string.IsNullOrWhiteSpace(TxtObservaciones.Text) ? DBNull.Value : TxtObservaciones.Text.Trim();
+
+                object idSap = CmbSAP.SelectedValue ?? DBNull.Value;
+                object idOrg = CmbOrganismo.SelectedValue ?? DBNull.Value;
+                object idCentro = CmbCentroTrabajo.SelectedValue ?? DBNull.Value;
+                object idDepto = CmbDepartamento.SelectedValue ?? DBNull.Value;
+                object idSecSindical = CmbSecSindical.SelectedValue ?? DBNull.Value;
 
                 SqliteConnection conn = DatabaseConnection.GetConnection();
 
@@ -280,18 +272,17 @@ namespace Proyecto_GRRLN_expediente
                     command.Parameters.AddWithValue("$fechaOfi", fechaOficio);
                     command.Parameters.AddWithValue("$agenda", agenda);
                     command.Parameters.AddWithValue("$fechaComp", fechaCompromiso);
-
-                    command.Parameters.AddWithValue("$inst", string.IsNullOrEmpty(instruccion) ? DBNull.Value : instruccion);
-                    command.Parameters.AddWithValue("$obs", string.IsNullOrEmpty(observaciones) ? DBNull.Value : observaciones);
-
+                    command.Parameters.AddWithValue("$inst", instruccion);
+                    command.Parameters.AddWithValue("$obs", observaciones);
                     command.Parameters.AddWithValue("$sap", idSap);
                     command.Parameters.AddWithValue("$depto", idDepto);
                     command.Parameters.AddWithValue("$secSind", idSecSindical);
                     command.Parameters.AddWithValue("$org", idOrg);
                     command.Parameters.AddWithValue("$centro", idCentro);
+
+                    // La descripción corta se envía de forma segura
                     command.Parameters.AddWithValue("$descCorta", idDescCorta);
 
-                    // AQUI INYECTAMOS AL RESPONSABLE QUE SELECCIONÓ EL ADMIN
                     command.Parameters.AddWithValue("$ficha", fichaResponsable);
 
                     command.ExecuteNonQuery();

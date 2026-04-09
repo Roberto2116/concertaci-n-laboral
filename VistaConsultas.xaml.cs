@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,7 +31,7 @@ namespace Proyecto_GRRLN_expediente
                     // 1. Cargar Estatus
                     List<ItemFiltro> listaEstatus = new List<ItemFiltro> { new ItemFiltro { Id = -1, Descripcion = "TODOS LOS ESTADOS" } };
                     var cmdE = conn.CreateCommand();
-                    cmdE.CommandText = "SELECT id_estatus, tipo_estatus FROM Estatus";
+                    cmdE.CommandText = "SELECT id_estatus, tipo_estatus FROM Estatus WHERE tipo_estatus != 'NO PROCEDE'";
                     using (var reader = cmdE.ExecuteReader())
                         while (reader.Read()) listaEstatus.Add(new ItemFiltro { Id = reader.GetInt32(0), Descripcion = reader.GetString(1) });
                     CmbEstado.ItemsSource = listaEstatus;
@@ -161,7 +161,7 @@ namespace Proyecto_GRRLN_expediente
             if (modelo == null) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D5D8DC"));
 
             if (!string.IsNullOrEmpty(modelo.EstatusNombre) && (modelo.EstatusNombre.ToUpper().Contains("COMPLETADO") || modelo.EstatusNombre.ToUpper().Contains("ATENDIDO")))
-                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#008C4A"));
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00843D"));
 
             if (string.IsNullOrWhiteSpace(modelo.FechaLimite)) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D5D8DC"));
 
@@ -169,9 +169,9 @@ namespace Proyecto_GRRLN_expediente
             if (DateTime.TryParse(modelo.FechaLimite, out f))
             {
                 TimeSpan t = f.Date - DateTime.Now.Date;
-                if (t.TotalDays < 0) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C"));
-                if (t.TotalDays <= 3) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E67E22"));
-                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2ECC71"));
+                if (t.TotalDays < 0) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C8102E"));
+                if (t.TotalDays <= 3) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1C40F"));
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3498DB"));
             }
             return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D5D8DC"));
         }

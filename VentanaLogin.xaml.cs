@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography; // Necesario para la encriptación
 using System.Windows;
 using Microsoft.Data.Sqlite;
@@ -101,6 +101,11 @@ namespace Proyecto_GRRLN_expediente
                             SesionGlobal.Nombre = nombreUsuarioLogueado;
                             SesionGlobal.TipoRol = tipoUsuarioLogueado;
                             SesionGlobal.ClaveDepto = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                        }
+                        else
+                        {
+                            MostrarError("Ficha o contraseña incorrectos.");
+                            return;
                         }
                     }
 

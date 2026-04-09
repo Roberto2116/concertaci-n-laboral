@@ -10,7 +10,7 @@ namespace Proyecto_GRRLN_expediente
     public partial class VistaEditarExpediente : Wpf.Ui.Controls.FluentWindow
     {
         private int _idAsunto;
-        private int _avanceActual; // Para mandarlo a la ventana de actualización
+        private int _avanceActual;
 
         public VistaEditarExpediente(int idAsunto)
         {
@@ -22,6 +22,7 @@ namespace Proyecto_GRRLN_expediente
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             CargarCatalogos();
+            CargarUsuariosResponsables(); // Agregado para llenar el combobox de responsables
             CargarDatosExpediente();
         }
 
@@ -86,6 +87,57 @@ namespace Proyecto_GRRLN_expediente
             finally { DatabaseConnection.CloseConnection(); }
         }
 
+        private void CargarUsuariosResponsables()
+        {
+            try
+            {
+                using (var conn = DatabaseConnection.GetConnection())
+                {
+                    List<ItemUsuario> listaUsuarios = new List<ItemUsuario>();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT Ficha, nombre FROM usuario WHERE IFNULL(estatus, 1) = 1";
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                listaUsuarios.Add(new ItemUsuario
+                                {
+                                    IdFicha = reader.GetString(0),
+                                    Descripcion = $"{reader.GetString(0)} - {reader.GetString(1)}"
+                                });
+                            }
+                        }
+                    }
+                    CmbResponsable.ItemsSource = listaUsuarios;
+
+                    // Permisos de edición de responsable
+                    string miTipo = "OPERADOR";
+                    string miFicha = SesionGlobal.Ficha ?? "admin";
+
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT tipo FROM usuario WHERE Ficha = $ficha";
+                        cmd.Parameters.AddWithValue("$ficha", miFicha);
+                        var resultTipo = cmd.ExecuteScalar();
+                        if (resultTipo != null && resultTipo != DBNull.Value)
+                            miTipo = resultTipo.ToString().Trim().ToUpper();
+                    }
+
+                    if (miTipo == "OPERADOR" || miTipo == "CONSULTOR")
+                    {
+                        CmbResponsable.IsEnabled = false;
+                    }
+                    else
+                    {
+                        CmbResponsable.IsEnabled = true;
+                    }
+                }
+            }
+            catch (Exception ex) { Console.WriteLine("Error al cargar responsables: " + ex.Message); }
+            finally { DatabaseConnection.CloseConnection(); }
+        }
+
         private void CargarDatosExpediente()
         {
             try
@@ -94,9 +146,11 @@ namespace Proyecto_GRRLN_expediente
                 {
                     using (var cmd = conn.CreateCommand())
                     {
+                        // Agregué Ficha al final de la consulta
                         cmd.CommandText = @"SELECT Fecha_recepcion, Tipo, Nombre_oficio, Fecha_oficio, Agenda, 
                                            Fecha_Compromiso, Instruccion, Observaciones, id_sap, clave_depto, 
-                                           Sec_Sindical, Id_Organismo, clave_centroTrabajo, id_descripcionCorta, Porcentaje_avance 
+                                           Sec_Sindical, Id_Organismo, clave_centroTrabajo, id_descripcionCorta, Porcentaje_avance,
+                                           Ficha 
                                            FROM Asuntos WHERE Id_asunto = $id";
                         cmd.Parameters.AddWithValue("$id", _idAsunto);
 
@@ -105,17 +159,16 @@ namespace Proyecto_GRRLN_expediente
                             if (reader.Read())
                             {
                                 DpFechaRecepcion.SelectedDate = reader.IsDBNull(0) ? (DateTime?)null : DateTime.Parse(reader.GetString(0));
-                                DpFechaOficio.SelectedDate = reader.IsDBNull(3) ? (DateTime?)null : DateTime.Parse(reader.GetString(3));
-                                DpFechaCompromiso.SelectedDate = reader.IsDBNull(5) ? (DateTime?)null : DateTime.Parse(reader.GetString(5));
+                                TxtTipo.Text = reader.IsDBNull(1) ? "CASO" : reader.GetString(1);
                                 TxtNombreOficio.Text = reader.IsDBNull(2) ? "" : reader.GetString(2);
-                                TxtInstruccion.Text = reader.IsDBNull(6) ? "" : reader.GetString(6);
-                                TxtObservaciones.Text = reader.IsDBNull(7) ? "" : reader.GetString(7);
-
-                                string tipo = reader.IsDBNull(1) ? "" : reader.GetString(1);
-                                foreach (ComboBoxItem item in CmbTipo.Items) if (item.Content.ToString() == tipo) CmbTipo.SelectedItem = item;
+                                DpFechaOficio.SelectedDate = reader.IsDBNull(3) ? (DateTime?)null : DateTime.Parse(reader.GetString(3));
 
                                 string agenda = reader.IsDBNull(4) ? "" : reader.GetString(4);
                                 foreach (ComboBoxItem item in CmbAgenda.Items) if (item.Content.ToString() == agenda) CmbAgenda.SelectedItem = item;
+
+                                DpFechaCompromiso.SelectedDate = reader.IsDBNull(5) ? (DateTime?)null : DateTime.Parse(reader.GetString(5));
+                                TxtInstruccion.Text = reader.IsDBNull(6) ? "" : reader.GetString(6);
+                                TxtObservaciones.Text = reader.IsDBNull(7) ? "" : reader.GetString(7);
 
                                 CmbSAP.SelectedValue = reader.IsDBNull(8) ? (long?)null : reader.GetInt64(8);
                                 CmbDepartamento.SelectedValue = reader.IsDBNull(9) ? (long?)null : reader.GetInt64(9);
@@ -125,6 +178,13 @@ namespace Proyecto_GRRLN_expediente
                                 CmbDescCorta.SelectedValue = reader.IsDBNull(13) ? (long?)null : reader.GetInt64(13);
 
                                 _avanceActual = reader.IsDBNull(14) ? 0 : Convert.ToInt32(reader.GetValue(14));
+
+                                // Cargar Responsable
+                                if (!reader.IsDBNull(15))
+                                {
+                                    CmbResponsable.SelectedValue = reader.GetString(15);
+                                    TxtFichaVisual.Text = reader.GetString(15);
+                                }
                             }
                         }
                     }
@@ -135,14 +195,30 @@ namespace Proyecto_GRRLN_expediente
         }
 
         // ==========================================
-        // 2. LÓGICA DE LOS BOTONES DE CABECERA
+        // 2. LÓGICA DE LOS BOTONES DE CABECERA Y COMBOS
         // ==========================================
+
+        private void CmbResponsable_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CmbResponsable.SelectedValue != null)
+            {
+                TxtFichaVisual.Text = CmbResponsable.SelectedValue.ToString();
+            }
+        }
+
+        private void CmbCentroTrabajo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CmbCentroTrabajo.SelectedItem is ItemCentroTrabajo centro)
+            {
+                if (centro.IdSap > 0) CmbSAP.SelectedValue = centro.IdSap;
+                if (centro.IdOrganismo > 0) CmbOrganismo.SelectedValue = centro.IdOrganismo;
+            }
+        }
 
         private void BtnAvanceEdicion_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Pasamos los 2 parámetros que pide tu ventana
                 VentanaActualizarAvance win = new VentanaActualizarAvance(_idAsunto, _avanceActual);
                 if (win.ShowDialog() == true) CargarDatosExpediente();
             }
@@ -155,14 +231,15 @@ namespace Proyecto_GRRLN_expediente
             catch (Exception ex) { MessageBox.Show($"Error bitácora: {ex.Message}"); }
         }
 
-        // AQUÍ ESTÁ EL MÉTODO QUE TE DABA ERROR:
         private void BtnEliminarEdicion_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show($"¿Deseas eliminar permanentemente el Expediente N° {_idAsunto}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                // Si usas una ventana de confirmación extra:
-                ConfirmarBorrado confirm = new ConfirmarBorrado();
-                if (confirm.ShowDialog() == true) EjecutarBorrado(_idAsunto);
+                // Si usas ConfirmarBorrado, descomenta estas líneas y quita el EjecutarBorrado directo
+                // ConfirmarBorrado confirm = new ConfirmarBorrado();
+                // if (confirm.ShowDialog() == true) EjecutarBorrado(_idAsunto);
+
+                EjecutarBorrado(_idAsunto);
             }
         }
 
@@ -187,46 +264,83 @@ namespace Proyecto_GRRLN_expediente
         }
 
         // ==========================================
-        // 3. GUARDADO Y OTROS
+        // 3. GUARDADO (ACTUALIZADO COMPLETO)
         // ==========================================
         private void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
+            // Validaciones
+            if (!DpFechaRecepcion.SelectedDate.HasValue ||
+                string.IsNullOrWhiteSpace(TxtNombreOficio.Text) ||
+                CmbResponsable.SelectedValue == null ||
+                CmbDescCorta.SelectedValue == null ||
+                !DpFechaCompromiso.SelectedDate.HasValue)
+            {
+                MessageBox.Show("Por favor, llena todos los campos obligatorios marcados con asterisco (*).", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 using (var conn = DatabaseConnection.GetConnection())
                 {
                     using (var command = conn.CreateCommand())
                     {
-                        command.CommandText = @"UPDATE Asuntos SET Fecha_recepcion = $fechaRec, Nombre_oficio = $nombreOfi, 
-                                               id_sap = $sap, clave_centroTrabajo = $centro WHERE Id_asunto = $id";
+                        // AHORA SE ACTUALIZAN TODOS LOS CAMPOS
+                        command.CommandText = @"UPDATE Asuntos SET 
+                                                Fecha_recepcion = $fechaRec, 
+                                                Nombre_oficio = $nombreOfi, 
+                                                Fecha_oficio = $fechaOfi,
+                                                id_sap = $sap, 
+                                                clave_depto = $depto, 
+                                                Agenda = $agenda, 
+                                                Sec_Sindical = $secSind, 
+                                                Id_Organismo = $org, 
+                                                clave_centroTrabajo = $centro, 
+                                                id_descripcionCorta = $descCorta,
+                                                Ficha = $ficha, 
+                                                Instruccion = $inst, 
+                                                Observaciones = $obs, 
+                                                Fecha_Compromiso = $fechaComp
+                                                WHERE Id_asunto = $id";
 
-                        command.Parameters.AddWithValue("$fechaRec", DpFechaRecepcion.SelectedDate?.ToString("yyyy-MM-dd") ?? "");
+                        command.Parameters.AddWithValue("$fechaRec", DpFechaRecepcion.SelectedDate.Value.ToString("yyyy-MM-dd"));
                         command.Parameters.AddWithValue("$nombreOfi", TxtNombreOficio.Text.Trim());
-                        command.Parameters.AddWithValue("$sap", CmbSAP.SelectedValue ?? 0);
-                        command.Parameters.AddWithValue("$centro", CmbCentroTrabajo.SelectedValue ?? 0);
+                        command.Parameters.AddWithValue("$fechaOfi", DpFechaOficio.SelectedDate.HasValue ? DpFechaOficio.SelectedDate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+
+                        object agenda = CmbAgenda.SelectedItem != null ? ((ComboBoxItem)CmbAgenda.SelectedItem).Content.ToString() : DBNull.Value;
+                        command.Parameters.AddWithValue("$agenda", agenda);
+
+                        command.Parameters.AddWithValue("$secSind", CmbSecSindical.SelectedValue ?? DBNull.Value);
+                        command.Parameters.AddWithValue("$descCorta", CmbDescCorta.SelectedValue);
+
+                        command.Parameters.AddWithValue("$ficha", CmbResponsable.SelectedValue.ToString());
+                        command.Parameters.AddWithValue("$fechaComp", DpFechaCompromiso.SelectedDate.Value.ToString("yyyy-MM-dd"));
+
+                        command.Parameters.AddWithValue("$inst", string.IsNullOrWhiteSpace(TxtInstruccion.Text) ? DBNull.Value : TxtInstruccion.Text.Trim());
+                        command.Parameters.AddWithValue("$obs", string.IsNullOrWhiteSpace(TxtObservaciones.Text) ? DBNull.Value : TxtObservaciones.Text.Trim());
+
+                        command.Parameters.AddWithValue("$sap", CmbSAP.SelectedValue ?? DBNull.Value);
+                        command.Parameters.AddWithValue("$org", CmbOrganismo.SelectedValue ?? DBNull.Value);
+                        command.Parameters.AddWithValue("$centro", CmbCentroTrabajo.SelectedValue ?? DBNull.Value);
+                        command.Parameters.AddWithValue("$depto", CmbDepartamento.SelectedValue ?? DBNull.Value);
+
                         command.Parameters.AddWithValue("$id", _idAsunto);
+
                         command.ExecuteNonQuery();
                     }
                 }
-                MessageBox.Show("Cambios guardados.");
+                MessageBox.Show("Cambios guardados exitosamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 this.Close();
             }
-            catch (Exception ex) { MessageBox.Show($"Error al guardar: {ex.Message}"); }
-        }
-
-        private void CmbCentroTrabajo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (CmbCentroTrabajo.SelectedItem is ItemCentroTrabajo centro)
-            {
-                if (centro.IdSap > 0) CmbSAP.SelectedValue = centro.IdSap;
-                if (centro.IdOrganismo > 0) CmbOrganismo.SelectedValue = centro.IdOrganismo;
-            }
+            catch (Exception ex) { MessageBox.Show($"Error al actualizar: {ex.Message}"); }
+            finally { DatabaseConnection.CloseConnection(); }
         }
 
         private void BtnRegresar_Click(object sender, RoutedEventArgs e) => this.Close();
-    }
 
-    // MODELOS
-    public class ItemCatalogo { public long Id { get; set; } public string Descripcion { get; set; } }
-    public class ItemCentroTrabajo { public long Id { get; set; } public string Descripcion { get; set; } public long IdSap { get; set; } public long IdOrganismo { get; set; } }
+        // MODELOS
+        public class ItemCatalogo { public long Id { get; set; } public string Descripcion { get; set; } }
+        public class ItemCentroTrabajo : ItemCatalogo { public long IdSap { get; set; } public long IdOrganismo { get; set; } }
+        public class ItemUsuario { public string IdFicha { get; set; } public string Descripcion { get; set; } }
+    }
 }

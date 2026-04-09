@@ -6,7 +6,7 @@
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
-                 Background="Transparent" 
+                 Background="#F0F4F8" 
                  Loaded="UserControl_Loaded">
 
     <Grid>
@@ -17,192 +17,229 @@
 
         <ui:TitleBar Grid.Row="0" Title="Sistema de Expedientes - Nuevo Registro" />
 
-        <Grid Grid.Row="1" Margin="20,10,20,20">
+        <Grid Grid.Row="1" Margin="25,10,25,20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,0,0,20">
-                <ui:Button Content="Cancelar Registro" Icon="Dismiss24" Appearance="Secondary" 
-                           Height="36" Cursor="Hand" Margin="0,0,15,0" 
-                           Click="BtnRegresar_Click"/>
-                <TextBlock Text="REGISTRAR NUEVO ASUNTO" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
-            </StackPanel>
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Asunto No." FontSize="18" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="LblProximoFolio" Text="(New)" FontSize="26" FontWeight="Black" Foreground="#2196F3" VerticalAlignment="Center"/>
+                </StackPanel>
 
-                <Border Background="White" CornerRadius="8" MaxWidth="1350" HorizontalAlignment="Center" 
-                        BorderBrush="#EAEDED" BorderThickness="1" Padding="30" Margin="0,0,0,20">
-
-                    <Border.Effect>
-                        <DropShadowEffect Color="#DDDDDD" BlurRadius="10" ShadowDepth="2" Opacity="0.4"/>
-                    </Border.Effect>
-
-                    <StackPanel>
-                        <Border Background="#E5F3EB" CornerRadius="6" Padding="15,10" Margin="0,0,0,20" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Tag20" Foreground="#00843D" Margin="0,0,10,0"/>
-                                <TextBlock Text="Próximo Folio a asignar: " Foreground="#555555" VerticalAlignment="Center" FontSize="14"/>
-                                <TextBlock x:Name="LblProximoFolio" Text="Cargando..." Foreground="#00843D" FontWeight="Black" FontSize="16" Margin="5,0,0,0" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <GroupBox Grid.Row="0" Grid.Column="0" Header="Datos del Documento" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20" Padding="15">
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="15"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Grid.Column="0" Text="Fecha Recepción: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14"/>
-
-                                        <TextBlock Grid.Column="3" Text="Fecha Oficio: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <DatePicker Grid.Column="4" x:Name="DpFechaOficio" Height="35" FontSize="14"/>
-                                    </Grid>
-
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Nombre del Oficio: *" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,10,10,15"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtNombreOficio" Height="70" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14" Margin="0,0,0,15"/>
-
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo de Asunto: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbTipo" Height="35" FontSize="14" VerticalContentAlignment="Center" Margin="0,0,0,15">
-                                        <ComboBoxItem Content="ADMINISTRATIVO"/>
-                                        <ComboBoxItem Content="OPERATIVO"/>
-                                        <ComboBoxItem Content="LEGAL"/>
-                                    </ComboBox>
-
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Agenda: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="CmbAgenda" Height="35" FontSize="14" VerticalContentAlignment="Center">
-                                        <ComboBoxItem Content="ADMINISTRATIVA"/>
-                                        <ComboBoxItem Content="SINDICAL"/>
-                                    </ComboBox>
-                                </Grid>
-                            </GroupBox>
-
-                            <GroupBox Grid.Row="0" Grid.Column="2" Header="Clasificación y Asignación" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20" Padding="15">
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="15"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Sede SAP: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CmbSAP" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
-
-                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Organismo: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <ComboBox Grid.Row="0" Grid.Column="4" x:Name="CmbOrganismo" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
-
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Responsable: *" FontWeight="Bold" Foreground="#2196F3" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" x:Name="CmbResponsable" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="IdFicha" />
-
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Centro Trabajo: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbCentroTrabajo" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id" SelectionChanged="CmbCentroTrabajo_SelectionChanged"/>
-
-                                    <TextBlock Grid.Row="2" Grid.Column="3" Text="Departamento: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <ComboBox Grid.Row="2" Grid.Column="4" x:Name="CmbDepartamento" Height="35" FontSize="14" Margin="0,0,0,15" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
-
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Sección Sind: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="CmbSecSindical" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
-
-                                    <TextBlock Grid.Row="3" Grid.Column="3" Text="Desc. Corta: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <ComboBox Grid.Row="3" Grid.Column="4" x:Name="CmbDescCorta" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
-                                </Grid>
-                            </GroupBox>
-
-                            <GroupBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Header="Detalles del Trámite" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,25" Padding="15">
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="30"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Fecha Compromiso: *" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                                    <DatePicker Grid.Row="0" Grid.Column="1" x:Name="DpFechaCompromiso" Width="220" Height="35" FontSize="14" HorizontalAlignment="Left" Margin="0,0,0,15"/>
-
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Instrucción:" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,10,10,0"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtInstruccion" Height="75" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
-
-                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="Observaciones:" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,10,10,0"/>
-                                    <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtObservaciones" Height="75" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
-                                </Grid>
-                            </GroupBox>
-                        </Grid>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Width="220" Height="45" Cursor="Hand" Click="BtnGuardar_Click">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-
-                                        <Border x:Name="FondoBoton" Background="#00843D" CornerRadius="6">
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <ui:SymbolIcon Symbol="Save24" Foreground="White" Margin="0,0,10,0" FontSize="20"/>
-                                                <TextBlock Text="Guardar y Ver Lista" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <ControlTemplate.Triggers>
-
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="FondoBoton" Property="Background" Value="#00A84D"/>
-                                            </Trigger>
-
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="FondoBoton" Property="Background" Value="#005C2B"/>
-                                            </Trigger>
-
-                                        </ControlTemplate.Triggers>
-
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </StackPanel>
-
-                    </StackPanel>
+                <Border Grid.Column="1" Background="White" Padding="15,5" Margin="0,0,0,10" CornerRadius="4" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Fecha:" Foreground="#64748B" FontWeight="Bold" Margin="0,0,10,5" TextAlignment="Right"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="LblFechaActual" Text="--" Foreground="#0F172A" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Usuario:" Foreground="#64748B" FontWeight="Bold" Margin="0,0,10,0" TextAlignment="Right"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="LblUsuarioActual" Text="--" Foreground="#0F172A" FontWeight="SemiBold"/>
+                    </Grid>
                 </Border>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,0,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5.5*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="4.5*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <GroupBox Grid.Column="0" Header="Ámbito del Asunto a Tratar en la Agenda Laboral" FontWeight="Black" FontSize="15" Foreground="#0F172A" Padding="20">
+                        <StackPanel Margin="0,15,0,0">
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="120"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Fecha Recepción:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14"/>
+
+                                <TextBlock Grid.Column="3" Text="* Tipo:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="4" x:Name="TxtTipo" Text="CASO" IsReadOnly="True" Background="#E2E8F0" Foreground="#475569" FontWeight="Bold" Height="35" FontSize="14" VerticalContentAlignment="Center" TextAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="* Documento No.:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" x:Name="TxtNombreOficio" Height="35" CharacterCasing="Upper" Padding="8,0" FontSize="14" VerticalContentAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="180"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Fecha del Doc.:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaOficio" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="250"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Gerencia (SAP):" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbSAP" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="250"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Subgerencia (Org.):" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbOrganismo" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Departamento:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbDepartamento" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Agenda:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbAgenda" Height="35" FontSize="14">
+                                    <ComboBoxItem Content="ADMINISTRATIVA"/>
+                                    <ComboBoxItem Content="SINDICAL"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Column="3" Text="Sección:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox Grid.Column="4" x:Name="CmbSecSindical" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Centro Trabajo:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbCentroTrabajo" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" SelectionChanged="CmbCentroTrabajo_SelectionChanged"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="* Tema:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbDescCorta" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                            </Grid>
+
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Grid.Column="2" Header="Responsable en Atender el Asunto" FontWeight="Black" FontSize="15" Foreground="#0F172A" Padding="20">
+                        <StackPanel Margin="0,15,0,0">
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="15"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="* Responsable:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbResponsable" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="IdFicha" SelectionChanged="CmbResponsable_SelectionChanged"/>
+
+                                <TextBlock Grid.Column="3" Text="Ficha:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="4" x:Name="TxtFichaVisual" Height="35" FontSize="14" IsReadOnly="True" Background="#F1F5F9" FontWeight="Bold" Foreground="#64748B" VerticalContentAlignment="Center" TextAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="180"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="* F. Compromiso:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaCompromiso" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
+                            </Grid>
+
+                            <TextBlock Text="Instrucciones para la atención:" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,5"/>
+                            <TextBox x:Name="TxtInstruccion" Height="100" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14" Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Observaciones a considerar en la Gestión del Asunto:" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,5"/>
+                            <TextBox x:Name="TxtObservaciones" Height="100" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
             </ScrollViewer>
+
+            <Grid Grid.Row="2" Margin="0,10,0,0">
+                <TextBlock Text="* Campos Obligatorios" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Width="180" Height="45" Cursor="Hand" Click="BtnGuardar_Click" Margin="0,0,20,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="FondoBoton" Background="#00843D" CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="Save24" Foreground="White" Margin="0,0,10,0" FontSize="20"/>
+                                        <TextBlock Text="Guardar" Foreground="White" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="FondoBoton" Property="Background" Value="#00A84D"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button Width="180" Height="45" Cursor="Hand" Click="BtnRegresar_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="FondoBotonC" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="ArrowLeft24" Foreground="#0F172A" Margin="0,0,10,0" FontSize="20"/>
+                                        <TextBlock Text="Regresar" Foreground="#0F172A" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="FondoBotonC" Property="Background" Value="#F8FAFC"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
 </ui:FluentWindow>

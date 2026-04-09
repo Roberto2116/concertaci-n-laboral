@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -192,7 +192,7 @@ namespace Proyecto_GRRLN_expediente
         {
             get
             {
-                if (TipoAlcance == "PERSONAL") return "MENSAJE DIRECTO";
+                if (TipoAlcance == "PERSONAL") return "AVISO DIRECTO";
                 if (TipoAlcance == "DEPTO") return "AVISO DEPARTAMENTAL";
                 return "COMUNICADO GENERAL";
             }
