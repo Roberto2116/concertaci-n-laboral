@@ -2,52 +2,72 @@
 using System.IO;
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
+using System.Windows;
 
 namespace Proyecto_GRRLN_expediente.db
 {
     public class DatabaseConnection
     {
-        private static SqliteConnection _connection;
-
-     
-        private static readonly string DbPath = @"C:\Users\Thinkpad\Desktop\Practicas\Proyecto_GRRLN_expediente\db\PEMEXDB.db";
-
-        private static readonly string ConnectionString = $"Data Source={DbPath}";
+        public static string RutaConfirmada = "";
 
         public static SqliteConnection GetConnection()
         {
             try
             {
-                if (_connection == null)
+                // 1. Usamos el radar para encontrar dónde está la base de datos
+                string dbPath = EncontrarBaseDeDatos();
+
+                if (dbPath == null)
                 {
-                    _connection = new SqliteConnection(ConnectionString);
-                    _connection.Open();
-                    Debug.WriteLine(">>> Conexión abierta en: " + DbPath);
+                    MessageBox.Show("No pude encontrar el archivo PEMEXDB.db por ninguna parte. Revisa que no le hayas cambiado el nombre y que esté en tu proyecto.", "Error Crítico", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return null;
                 }
-                else if (_connection.State != System.Data.ConnectionState.Open)
-                {
-                    _connection.Open();
-                }
+
+                RutaConfirmada = dbPath;
+
+                // 2. Conectamos
+                string connectionString = $"Data Source={dbPath};Mode=ReadWrite;";
+
+                // ¡LA MAGIA AQUÍ! Creamos una conexión NUEVA y FRESCA cada vez que se solicita
+                var conn = new SqliteConnection(connectionString);
+                conn.Open();
+
+                return conn;
             }
             catch (Exception ex)
             {
-                // Este mensaje de error te confirmará exactamente la ruta que está intentando abrir
-                System.Windows.MessageBox.Show($"Error al abrir la base de datos.\n\n" +
-                    $"Buscando en: {DbPath}\n\nDetalle: {ex.Message}");
+                MessageBox.Show($"Error de SQLite al conectar.\n\nArchivo que intentó abrir:\n{RutaConfirmada}\n\nDetalle: {ex.Message}", "Error de BD", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+        }
+
+        // ==========================================
+        // EL RADAR: Busca el archivo hacia arriba
+        // ==========================================
+        private static string EncontrarBaseDeDatos()
+        {
+            string directorioActual = AppDomain.CurrentDomain.BaseDirectory;
+            DirectoryInfo dir = new DirectoryInfo(directorioActual);
+
+            for (int i = 0; i < 6; i++)
+            {
+                if (dir == null) break;
+
+                string posibleRuta = Path.Combine(dir.FullName, "db", "PEMEXDB.db");
+                if (File.Exists(posibleRuta)) return posibleRuta;
+
+                string posibleRutaSuelto = Path.Combine(dir.FullName, "PEMEXDB.db");
+                if (File.Exists(posibleRutaSuelto)) return posibleRutaSuelto;
+
+                dir = dir.Parent;
             }
 
-            return _connection;
+            return null;
         }
 
         public static void CloseConnection()
         {
-            if (_connection != null && _connection.State == System.Data.ConnectionState.Open)
-            {
-                _connection.Close();
-                _connection.Dispose();
-                _connection = null;
-                Debug.WriteLine(">>> Conexión cerrada.");
-            }
+          
         }
     }
 }

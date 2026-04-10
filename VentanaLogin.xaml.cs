@@ -96,11 +96,25 @@ namespace Proyecto_GRRLN_expediente
                             nombreUsuarioLogueado = reader.GetString(0);
                             tipoUsuarioLogueado = reader.GetString(1);
 
-                            // Llenado de sesiones globales
+                            // ====================================================
+                            // LLENADO DE SESIONES (¡AQUÍ ESTÁ LA CORRECCIÓN!)
+                            // ====================================================
+
+                            // 1. Tu sesión original (SesionGlobal)
                             SesionGlobal.Ficha = usuario;
                             SesionGlobal.Nombre = nombreUsuarioLogueado;
                             SesionGlobal.TipoRol = tipoUsuarioLogueado;
                             SesionGlobal.ClaveDepto = reader.IsDBNull(2) ? "" : reader.GetString(2);
+
+                            // 2. La sesión que usa ConfirmarBorrado (SesionSistema)
+                            SesionSistema.UsuarioLogueado = new Usuario
+                            {
+                                Ficha = usuario,
+                                Nombre = nombreUsuarioLogueado,
+                                Contrasena = passwordBD, // ¡VITAL! Guardamos la contraseña encriptada en memoria
+                                Tipo = tipoUsuarioLogueado,
+                                ClaveDepto = reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader.GetValue(2))
+                            };
                         }
                         else
                         {
@@ -122,7 +136,6 @@ namespace Proyecto_GRRLN_expediente
                         command.ExecuteNonQuery();
 
                         // B. ALIMENTAR BITÁCORA: Insertar registro de entrada
-                        // Usamos SELECT last_insert_rowid() para obtener el ID de esta sesión específica
                         command.CommandText = @"INSERT INTO Bitacora_Sesiones (Ficha_Usuario, Fecha_Entrada) 
                                                 VALUES ($ficha, $fechaEntrada);
                                                 SELECT last_insert_rowid();";
@@ -131,7 +144,6 @@ namespace Proyecto_GRRLN_expediente
                         command.Parameters.AddWithValue("$ficha", usuario);
                         command.Parameters.AddWithValue("$fechaEntrada", fechaAhora);
 
-                        // Recuperamos el ID de la sesión y lo guardamos globalmente para el Logout
                         long idSesionGenerado = (long)command.ExecuteScalar();
                         SesionGlobal.IdSesionActual = idSesionGenerado;
                     }
@@ -182,4 +194,3 @@ namespace Proyecto_GRRLN_expediente
         }
     }
 }
-
