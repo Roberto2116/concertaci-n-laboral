@@ -14,7 +14,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Agenda Laboral" />
+        <ui:TitleBar Grid.Row="0" Title="Agenda Laboral" 
+                     ShowMinimize="False" 
+                     ShowMaximize="False" 
+                     ShowClose="False" />
 
         <Grid Grid.Row="0" Height="6" VerticalAlignment="Top" Margin="0,32,0,0">
             <Grid.ColumnDefinitions>

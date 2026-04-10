@@ -4,6 +4,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="Agenda laboral - Gestión Multi-Sede" 
         WindowState="Maximized"
+        ResizeMode="NoResize"
         MinHeight="720" MinWidth="1024"
         WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True"
@@ -16,7 +17,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Agenda Laboral" />
+        <ui:TitleBar Grid.Row="0" Title="Agenda Laboral" 
+                     ShowMinimize="False" 
+                     ShowMaximize="False" 
+                     ShowClose="False" />
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>

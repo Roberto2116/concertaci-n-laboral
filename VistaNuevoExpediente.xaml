@@ -2,8 +2,10 @@
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-                 Title="Registrar Nuevo Asunto" Height="800" Width="1350"
+                 Title="Registrar Nuevo Asunto" Height="900" Width="1600"
                  WindowStartupLocation="CenterScreen"
+                 WindowState="Maximized"
+                 ResizeMode="NoResize"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  Background="#F0F4F8" 
@@ -15,7 +17,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Sistema de Expedientes - Nuevo Registro" />
+        <ui:TitleBar Grid.Row="0" Title="Sistema de Expedientes - Nuevo Registro" 
+                     ShowMinimize="False" 
+                     ShowMaximize="False" 
+                     ShowClose="False" />
 
         <Grid Grid.Row="1" Margin="25,10,25,20">
             <Grid.RowDefinitions>

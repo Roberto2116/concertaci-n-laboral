@@ -5,6 +5,7 @@
                  xmlns:local="clr-namespace:Proyecto_GRRLN_expediente"
                  Title="Búsqueda Avanzada" Height="800" Width="1200"
                  WindowStartupLocation="CenterScreen"
+                 WindowState="Maximized"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  Background="Transparent"
