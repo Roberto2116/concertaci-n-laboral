@@ -100,7 +100,7 @@
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Fecha Recepción:" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14" SelectedDateChanged="DpFechaRecepcion_SelectedDateChanged"/>
 
                                 <TextBlock Grid.Column="3" Text="* Tipo:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox Grid.Column="4" x:Name="TxtTipo" Text="CASO" IsReadOnly="True" Background="#E2E8F0" Foreground="#475569" FontWeight="Bold" Height="35" FontSize="14" VerticalContentAlignment="Center" TextAlignment="Center"/>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +9,8 @@ namespace Proyecto_GRRLN_expediente
 {
     public partial class VistaNuevoExpediente : Wpf.Ui.Controls.FluentWindow
     {
+        private List<ItemCatalogo> _todosLosDeptos = new List<ItemCatalogo>();
+
         public VistaNuevoExpediente()
         {
             InitializeComponent();
@@ -83,11 +85,27 @@ namespace Proyecto_GRRLN_expediente
                 List<ItemCatalogo> listaDeptos = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT clave_depto, descripcion FROM Dep_personal";
+                    cmd.CommandText = @"
+                        SELECT d.clave_depto, d.descripcion, d.clave_subgerencia, s.clave_gerencia 
+                        FROM Dep_personal d 
+                        LEFT JOIN Subgerencia s ON d.clave_subgerencia = s.Clave_subgerencia";
+
                     using (var reader = cmd.ExecuteReader())
-                        while (reader.Read()) listaDeptos.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+                    {
+                        while (reader.Read())
+                        {
+                            listaDeptos.Add(new ItemCatalogo 
+                            { 
+                                Id = reader.GetInt64(0), 
+                                Descripcion = reader.GetString(1),
+                                IdPadre = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
+                                IdGerencia = reader.IsDBNull(3) ? 0 : reader.GetInt64(3)
+                            });
+                        }
+                    }
                 }
-                CmbDepartamento.ItemsSource = listaDeptos;
+                _todosLosDeptos = listaDeptos;
+                CmbDepartamento.ItemsSource = _todosLosDeptos;
 
                 List<ItemCatalogo> listaSec = new List<ItemCatalogo>();
                 using (var cmd = conn.CreateCommand())
@@ -210,7 +228,49 @@ namespace Proyecto_GRRLN_expediente
                     CmbSAP.SelectedValue = centroSeleccionado.IdSap;
 
                 if (centroSeleccionado.IdOrganismo > 0)
+                {
                     CmbOrganismo.SelectedValue = centroSeleccionado.IdOrganismo;
+
+                    // --- ESTRATEGIA DE FILTRADO HÍBRIDO EN CASCADA ---
+                    
+                    // Intento 1: Filtrado estricto por Subgerencia (IdPadre)
+                    var deptosFiltrados = _todosLosDeptos
+                        .Where(d => d.IdPadre == centroSeleccionado.IdOrganismo)
+                        .ToList();
+
+                    // Intento 2: Si no hay resultados, filtramos por Gerencia (SAP)
+                    if (deptosFiltrados.Count == 0 && centroSeleccionado.IdSap > 0)
+                    {
+                        deptosFiltrados = _todosLosDeptos
+                            .Where(d => d.IdGerencia == centroSeleccionado.IdSap)
+                            .ToList();
+                    }
+
+                    // Intento 3: Fallback de seguridad - Si sigue vacío, mostramos todo para no bloquear
+                    if (deptosFiltrados.Count == 0)
+                    {
+                        CmbDepartamento.ItemsSource = _todosLosDeptos;
+                        CmbDepartamento.SelectedIndex = -1;
+                    }
+                    else
+                    {
+                        CmbDepartamento.ItemsSource = deptosFiltrados;
+
+                        // Si solo hay una opción lógica, la seleccionamos
+                        if (deptosFiltrados.Count == 1)
+                        {
+                            CmbDepartamento.SelectedItem = deptosFiltrados[0];
+                        }
+                        else
+                        {
+                            CmbDepartamento.SelectedIndex = -1;
+                        }
+                    }
+                }
+                else
+                {
+                    CmbDepartamento.ItemsSource = _todosLosDeptos;
+                }
             }
         }
 
@@ -224,6 +284,13 @@ namespace Proyecto_GRRLN_expediente
                 !DpFechaCompromiso.SelectedDate.HasValue)
             {
                 MessageBox.Show("Por favor, llena todos los campos obligatorios marcados con asterisco (*).", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // --- VALIDACIÓN EXTRA DE SEGURIDAD (FECHAS) ---
+            if (DpFechaCompromiso.SelectedDate.Value < DpFechaRecepcion.SelectedDate.Value)
+            {
+                MessageBox.Show("¡Lógica inválida! La Fecha de Compromiso no puede ser anterior a la Fecha de Recepción.", "Error de Datos", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -305,6 +372,25 @@ namespace Proyecto_GRRLN_expediente
             }
         }
 
+        private void DpFechaRecepcion_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DpFechaRecepcion.SelectedDate.HasValue)
+            {
+                // Bloqueamos físicamente los días anteriores a la recepción en el calendario de compromiso
+                DpFechaCompromiso.DisplayDateStart = DpFechaRecepcion.SelectedDate.Value;
+
+                // Si ya había una fecha de compromiso elegida y ahora es menor a la recepción, la limpiamos
+                if (DpFechaCompromiso.SelectedDate.HasValue && DpFechaCompromiso.SelectedDate.Value < DpFechaRecepcion.SelectedDate.Value)
+                {
+                    DpFechaCompromiso.SelectedDate = null;
+                }
+            }
+            else
+            {
+                DpFechaCompromiso.DisplayDateStart = null;
+            }
+        }
+
         private void BtnRegresar_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -314,6 +400,8 @@ namespace Proyecto_GRRLN_expediente
         {
             public long Id { get; set; }
             public string Descripcion { get; set; }
+            public long IdPadre { get; set; } 
+            public long IdGerencia { get; set; } // Nuevo: Para el filtrado híbrido
         }
 
         public class ItemCentroTrabajo : ItemCatalogo

@@ -129,7 +129,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="1.5*"/>
                                     <RowDefinition Height="20"/>
-                                    <RowDefinition Height="1*"/>
+                                    <RowDefinition Height="1.2*"/>
                                 </Grid.RowDefinitions>
                                 <Grid Grid.Row="0">
                                     <Grid.ColumnDefinitions>
@@ -240,30 +240,48 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
+
                                 <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0">
-                                    <chart:SfChart x:Name="ChartTendencia" Header="3. Productividad Diaria">
+                                    <chart:SfChart x:Name="ChartRendimientoUsuarios" Header="3. Carga de Trabajo y Rendimiento por Usuario">
                                         <chart:SfChart.Behaviors>
                                             <chart:ChartTooltipBehavior Position="Pointer"/>
                                         </chart:SfChart.Behaviors>
+
                                         <chart:SfChart.PrimaryAxis>
-                                            <chart:CategoryAxis/>
+                                            <chart:CategoryAxis LabelPlacement="BetweenTicks" ShowGridLines="False"/>
                                         </chart:SfChart.PrimaryAxis>
+
                                         <chart:SfChart.SecondaryAxis>
-                                            <chart:NumericalAxis ShowGridLines="False"/>
+                                            <chart:NumericalAxis ShowGridLines="True" Minimum="0"/>
                                         </chart:SfChart.SecondaryAxis>
+
                                         <chart:SfChart.Legend>
-                                            <chart:ChartLegend DockPosition="Top" HorizontalAlignment="Right"/>
+                                            <chart:ChartLegend DockPosition="Top" HorizontalAlignment="Right" IconWidth="14" IconHeight="14"/>
                                         </chart:SfChart.Legend>
-                                        <chart:LineSeries x:Name="LineNuevos" Label="Nuevos Ingresos" XBindingPath="Mes" YBindingPath="Valor" ShowTooltip="True" EnableAnimation="True">
-                                            <chart:LineSeries.Stroke>
-                                                <SolidColorBrush Color="#E67E22"/>
-                                            </chart:LineSeries.Stroke>
-                                        </chart:LineSeries>
-                                        <chart:LineSeries x:Name="LineCerrados" Label="Atendidos/Trabajados" XBindingPath="Mes" YBindingPath="Valor" ShowTooltip="True" EnableAnimation="True">
-                                            <chart:LineSeries.Stroke>
-                                                <SolidColorBrush Color="#2980B9"/>
-                                            </chart:LineSeries.Stroke>
-                                        </chart:LineSeries>
+
+                                        <chart:StackingColumnSeries x:Name="StackCompletados" Label="Completados" 
+                                                                    XBindingPath="NombreUsuario" YBindingPath="Completados" 
+                                                                    ShowTooltip="True" EnableAnimation="True">
+                                            <chart:StackingColumnSeries.Interior>
+                                                <SolidColorBrush Color="#10B981"/>
+                                            </chart:StackingColumnSeries.Interior>
+                                        </chart:StackingColumnSeries>
+
+                                        <chart:StackingColumnSeries x:Name="StackProceso" Label="En Proceso" 
+                                                                    XBindingPath="NombreUsuario" YBindingPath="EnProceso" 
+                                                                    ShowTooltip="True" EnableAnimation="True">
+                                            <chart:StackingColumnSeries.Interior>
+                                                <SolidColorBrush Color="#F59E0B"/>
+                                            </chart:StackingColumnSeries.Interior>
+                                        </chart:StackingColumnSeries>
+
+                                        <chart:StackingColumnSeries x:Name="StackVencidos" Label="Vencidos" 
+                                                                    XBindingPath="NombreUsuario" YBindingPath="Vencidos" 
+                                                                    ShowTooltip="True" EnableAnimation="True">
+                                            <chart:StackingColumnSeries.Interior>
+                                                <SolidColorBrush Color="#EF4444"/>
+                                            </chart:StackingColumnSeries.Interior>
+                                        </chart:StackingColumnSeries>
                                     </chart:SfChart>
                                 </Border>
                             </Grid>

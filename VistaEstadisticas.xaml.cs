@@ -23,9 +23,13 @@ namespace Proyecto_GRRLN_expediente
         private List<DetalleAsuntoModel> _asuntosActuales = new List<DetalleAsuntoModel>();
         private List<UsuarioRanking> _listaRankingGlobal = new List<UsuarioRanking>();
 
+        // Propiedad Observable para la Gráfica de Barras Apiladas
+        public List<UsuarioEstadisticaModel> DatosRendimientoUsuarios { get; set; } = new List<UsuarioEstadisticaModel>();
+
         public VistaEstadisticas()
         {
             InitializeComponent();
+            DataContext = this; // Muy importante para que Syncfusion enlace las propiedades (Binding)
 
             DpInicio.SelectedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             DpFin.SelectedDate = DateTime.Now.Date;
@@ -70,12 +74,10 @@ namespace Proyecto_GRRLN_expediente
 
             if (MainTabControl.SelectedIndex == 0)
             {
-                // Pestaña 1 (Asuntos): Muestra los filtros
                 if (PanelFiltros != null) PanelFiltros.Visibility = Visibility.Visible;
             }
             else if (MainTabControl.SelectedIndex == 1)
             {
-                // Pestaña 2 (Personal): Oculta los filtros porque ya no hay gráfica de tiempo
                 if (PanelFiltros != null) PanelFiltros.Visibility = Visibility.Collapsed;
             }
         }
@@ -176,7 +178,6 @@ namespace Proyecto_GRRLN_expediente
             }
         }
 
-        // DIBUJAR RADAR AL SELECCIONAR EMPLEADO
         private void GridRankingPersonal_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GridRankingPersonal.SelectedItem is UsuarioRanking usuarioSeleccionado)
@@ -185,7 +186,6 @@ namespace Proyecto_GRRLN_expediente
             }
         }
 
-        // LÓGICA PARA EL RADAR DE DESEMPEÑO
         private void ActualizarRadarDesempeno(UsuarioRanking usuario)
         {
             if (_listaRankingGlobal.Count == 0) return;
@@ -218,20 +218,15 @@ namespace Proyecto_GRRLN_expediente
         }
 
         // ==========================================================
-        // LÓGICA: PESTAÑA 1 - ESTADÍSTICAS DE ASUNTOS (INTACTA)
+        // LÓGICA: PESTAÑA 1 - ESTADÍSTICAS DE ASUNTOS (ACTUALIZADA)
         // ==========================================================
         private void CargarDatosEstadisticos(string filtroSap, DateTime inicio, DateTime fin)
         {
             _asuntosActuales.Clear();
+            DatosRendimientoUsuarios.Clear();
+
             int total = 0, completados = 0, proceso = 0, vencidos = 0;
             int sumaAvance = 0;
-
-            var tendenciaDiaria = new Dictionary<string, (int Nuevos, int Atendidos)>();
-
-            for (DateTime d = inicio.Date; d <= fin.Date; d = d.AddDays(1))
-            {
-                tendenciaDiaria[d.ToString("yyyy-MM-dd")] = (0, 0);
-            }
 
             try
             {
@@ -239,20 +234,27 @@ namespace Proyecto_GRRLN_expediente
                 {
                     if (conn.State != System.Data.ConnectionState.Open) conn.Open();
 
+                    // ===============================================
+                    // 1. CARGAR DATOS PARA LAS TARJETAS Y DONA (CON FILTRO DE FECHAS)
+                    // ===============================================
                     var cmd1 = conn.CreateCommand();
                     string queryAsuntos = @"
                         SELECT a.Id_asunto, dc.tipo_descripcion, a.Porcentaje_avance, a.Fecha_Compromiso, 
                                cs.Descripcion_Sap, a.Fecha_recepcion
                         FROM Asuntos a
                         LEFT JOIN Cat_SAP cs ON a.id_sap = cs.Id_SAP
-                        LEFT JOIN Descripcion_corta dc ON a.id_descripcionCorta = dc.id_descripcionCorta ";
+                        LEFT JOIN Descripcion_corta dc ON a.id_descripcionCorta = dc.id_descripcionCorta 
+                        WHERE a.Fecha_recepcion >= $inicio AND a.Fecha_recepcion <= $fin ";
 
                     if (filtroSap != "TODOS")
                     {
-                        queryAsuntos += "WHERE cs.Descripcion_Sap = $sapFiltro";
+                        queryAsuntos += " AND cs.Descripcion_Sap = $sapFiltro";
                         cmd1.Parameters.AddWithValue("$sapFiltro", filtroSap);
                     }
+
                     cmd1.CommandText = queryAsuntos;
+                    cmd1.Parameters.AddWithValue("$inicio", inicio.ToString("yyyy-MM-dd"));
+                    cmd1.Parameters.AddWithValue("$fin", fin.ToString("yyyy-MM-dd"));
 
                     using (var reader = cmd1.ExecuteReader())
                     {
@@ -292,55 +294,45 @@ namespace Proyecto_GRRLN_expediente
                                 Vencido = estaVencido ? "SÍ" : "NO",
                                 FechaRegistro = string.IsNullOrEmpty(fechaRecStr) ? "Sin Fecha" : fechaRecStr
                             });
-
-                            if (DateTime.TryParse(fechaRecStr, out DateTime fechaRec))
-                            {
-                                if (fechaRec.Date >= inicio.Date && fechaRec.Date <= fin.Date)
-                                {
-                                    string diaKey = fechaRec.ToString("yyyy-MM-dd");
-                                    if (tendenciaDiaria.ContainsKey(diaKey))
-                                    {
-                                        var datosDia = tendenciaDiaria[diaKey];
-                                        tendenciaDiaria[diaKey] = (datosDia.Nuevos + 1, datosDia.Atendidos);
-                                    }
-                                }
-                            }
                         }
                     }
 
-                    var cmd2 = conn.CreateCommand();
-                    string querySeguimiento = @"
-                        SELECT s.fecha_Seguimiento 
-                        FROM Seguimiento s
-                        INNER JOIN Asuntos a ON s.num_Asunto = a.Id_asunto
-                        LEFT JOIN Cat_SAP cs ON a.id_sap = cs.Id_SAP ";
+                    // ==============================================================
+                    // 2. NUEVA CONSULTA: RENDIMIENTO HISTÓRICO POR USUARIO (SIN FECHAS)
+                    // ==============================================================
+                    var cmdUsuarios = conn.CreateCommand();
+                    string queryRendimiento = @"
+                        SELECT 
+                            u.nombre AS NombreUsuario,
+                            SUM(CASE WHEN a.Porcentaje_avance >= 100 THEN 1 ELSE 0 END) AS Completados,
+                            SUM(CASE WHEN a.Porcentaje_avance < 100 AND (a.Fecha_Compromiso >= date('now') OR a.Fecha_Compromiso IS NULL OR a.Fecha_Compromiso = '') THEN 1 ELSE 0 END) AS EnProceso,
+                            SUM(CASE WHEN a.Porcentaje_avance < 100 AND a.Fecha_Compromiso < date('now') AND a.Fecha_Compromiso != '' THEN 1 ELSE 0 END) AS Vencidos
+                        FROM Asuntos a
+                        INNER JOIN usuario u ON a.Ficha = u.Ficha 
+                        LEFT JOIN Cat_SAP cs ON a.id_sap = cs.Id_SAP
+                        WHERE 1=1 ";
 
                     if (filtroSap != "TODOS")
                     {
-                        querySeguimiento += "WHERE cs.Descripcion_Sap = $sapFiltro";
-                        cmd2.Parameters.AddWithValue("$sapFiltro", filtroSap);
+                        queryRendimiento += " AND cs.Descripcion_Sap = $sapFiltro ";
+                        cmdUsuarios.Parameters.AddWithValue("$sapFiltro", filtroSap);
                     }
-                    cmd2.CommandText = querySeguimiento;
 
-                    using (var reader = cmd2.ExecuteReader())
+                    queryRendimiento += " GROUP BY u.nombre ORDER BY u.nombre ASC";
+
+                    cmdUsuarios.CommandText = queryRendimiento;
+
+                    using (var reader = cmdUsuarios.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            string fechaSeg = reader.IsDBNull(0) ? "" : reader.GetString(0);
-                            if (fechaSeg.Length >= 10) fechaSeg = fechaSeg.Substring(0, 10);
-
-                            if (DateTime.TryParse(fechaSeg, out DateTime fs))
+                            DatosRendimientoUsuarios.Add(new UsuarioEstadisticaModel
                             {
-                                if (fs.Date >= inicio.Date && fs.Date <= fin.Date)
-                                {
-                                    string diaKey = fs.ToString("yyyy-MM-dd");
-                                    if (tendenciaDiaria.ContainsKey(diaKey))
-                                    {
-                                        var datosDia = tendenciaDiaria[diaKey];
-                                        tendenciaDiaria[diaKey] = (datosDia.Nuevos, datosDia.Atendidos + 1);
-                                    }
-                                }
-                            }
+                                NombreUsuario = reader["NombreUsuario"].ToString(),
+                                Completados = Convert.ToInt32(reader["Completados"]),
+                                EnProceso = Convert.ToInt32(reader["EnProceso"]),
+                                Vencidos = Convert.ToInt32(reader["Vencidos"])
+                            });
                         }
                     }
                 }
@@ -354,6 +346,7 @@ namespace Proyecto_GRRLN_expediente
                 DatabaseConnection.CloseConnection();
             }
 
+            // ACTUALIZAR INTERFAZ TARJETAS Y GAUGE
             TxtTotal.Text = total.ToString();
             TxtCompletados.Text = completados.ToString();
             TxtProceso.Text = proceso.ToString();
@@ -363,6 +356,7 @@ namespace Proyecto_GRRLN_expediente
             PunteroAvance.Value = promedioAvance;
             TxtPromedioGauge.Text = Math.Round(promedioAvance, 1) + "%";
 
+            // ACTUALIZAR GRÁFICA DE DONA
             var listaDona = new List<GraficaDonaModel>();
             var gruposSap = _asuntosActuales.GroupBy(a => a.SAP);
 
@@ -385,21 +379,10 @@ namespace Proyecto_GRRLN_expediente
             }
             DonaSap.ItemsSource = listaDona;
 
-            var tendenciaNuevos = new List<TrendModel>();
-            var tendenciaAtendidos = new List<TrendModel>();
-            CultureInfo culturaEsp = new CultureInfo("es-ES");
-
-            foreach (var dia in tendenciaDiaria.OrderBy(d => d.Key))
-            {
-                if (DateTime.TryParse(dia.Key, out DateTime fc))
-                {
-                    string etiqueta = fc.ToString("dd MMM", culturaEsp);
-                    tendenciaNuevos.Add(new TrendModel(etiqueta, dia.Value.Nuevos));
-                    tendenciaAtendidos.Add(new TrendModel(etiqueta, dia.Value.Atendidos));
-                }
-            }
-            LineNuevos.ItemsSource = tendenciaNuevos;
-            LineCerrados.ItemsSource = tendenciaAtendidos;
+            // ACTUALIZAR NUEVA GRÁFICA DE BARRAS APILADAS
+            StackCompletados.ItemsSource = DatosRendimientoUsuarios;
+            StackProceso.ItemsSource = DatosRendimientoUsuarios;
+            StackVencidos.ItemsSource = DatosRendimientoUsuarios;
         }
 
         // ==========================================
@@ -457,11 +440,13 @@ namespace Proyecto_GRRLN_expediente
         public string EficienciaComparativa { get; set; }
     }
 
-    public class TrendModel
+    // NUEVO MODELO PARA LAS BARRAS APILADAS DE USUARIOS
+    public class UsuarioEstadisticaModel
     {
-        public string Mes { get; set; }
-        public double Valor { get; set; }
-        public TrendModel(string m, double v) { Mes = m; Valor = v; }
+        public string NombreUsuario { get; set; }
+        public int Completados { get; set; }
+        public int EnProceso { get; set; }
+        public int Vencidos { get; set; }
     }
 
     public class DetalleAsuntoModel

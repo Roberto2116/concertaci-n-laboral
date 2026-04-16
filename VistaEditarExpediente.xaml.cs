@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +11,7 @@ namespace Proyecto_GRRLN_expediente
     {
         private int _idAsunto;
         private int _avanceActual;
+        private List<ItemCatalogo> _todosLosDeptos = new List<ItemCatalogo>();
 
         public VistaEditarExpediente(int idAsunto)
         {
@@ -46,12 +47,28 @@ namespace Proyecto_GRRLN_expediente
                     {
                         cmd.CommandText = "SELECT Id_SAP, Descripcion_Sap FROM Cat_SAP";
                         using (var reader = cmd.ExecuteReader()) while (reader.Read()) listaSAP.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
-
                         cmd.CommandText = "SELECT id_organismo, Organismo FROM Organismos";
                         using (var reader = cmd.ExecuteReader()) while (reader.Read()) listaOrg.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+ 
+                        cmd.CommandText = @"
+                            SELECT d.clave_depto, d.descripcion, d.clave_subgerencia, s.clave_gerencia 
+                            FROM Dep_personal d 
+                            LEFT JOIN Subgerencia s ON d.clave_subgerencia = s.Clave_subgerencia";
 
-                        cmd.CommandText = "SELECT clave_depto, descripcion FROM Dep_personal";
-                        using (var reader = cmd.ExecuteReader()) while (reader.Read()) listaDeptos.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                listaDeptos.Add(new ItemCatalogo 
+                                { 
+                                    Id = reader.GetInt64(0), 
+                                    Descripcion = reader.GetString(1),
+                                    IdPadre = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
+                                    IdGerencia = reader.IsDBNull(3) ? 0 : reader.GetInt64(3)
+                                });
+                            }
+                        }
+                        _todosLosDeptos = listaDeptos;
 
                         cmd.CommandText = "SELECT SeccionSindical, Descripcion FROM AS_CatSecSind";
                         using (var reader = cmd.ExecuteReader()) while (reader.Read()) listaSec.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
@@ -185,6 +202,12 @@ namespace Proyecto_GRRLN_expediente
                                     CmbResponsable.SelectedValue = reader.GetString(15);
                                     TxtFichaVisual.Text = reader.GetString(15);
                                 }
+
+                                // --- RESTRICCIÓN INICIAL AL CARGAR ---
+                                if (DpFechaRecepcion.SelectedDate.HasValue)
+                                {
+                                    DpFechaCompromiso.DisplayDateStart = DpFechaRecepcion.SelectedDate.Value;
+                                }
                             }
                         }
                     }
@@ -211,7 +234,54 @@ namespace Proyecto_GRRLN_expediente
             if (CmbCentroTrabajo.SelectedItem is ItemCentroTrabajo centro)
             {
                 if (centro.IdSap > 0) CmbSAP.SelectedValue = centro.IdSap;
-                if (centro.IdOrganismo > 0) CmbOrganismo.SelectedValue = centro.IdOrganismo;
+
+                if (centro.IdOrganismo > 0)
+                {
+                    CmbOrganismo.SelectedValue = centro.IdOrganismo;
+
+                    // --- ESTRATEGIA DE FILTRADO HÍBRIDO EN CASCADA ---
+                    var idSeleccionadoPreviamente = CmbDepartamento.SelectedValue;
+
+                    // Intento 1: Filtrado estricto por Subgerencia (IdPadre)
+                    var deptosFiltrados = _todosLosDeptos
+                        .Where(d => d.IdPadre == centro.IdOrganismo)
+                        .ToList();
+
+                    // Intento 2: Si no hay resultados, filtramos por Gerencia (SAP)
+                    if (deptosFiltrados.Count == 0 && centro.IdSap > 0)
+                    {
+                        deptosFiltrados = _todosLosDeptos
+                            .Where(d => d.IdGerencia == centro.IdSap)
+                            .ToList();
+                    }
+
+                    // Intento 3: Fallback de seguridad - Si sigue vacío, mostramos todo
+                    if (deptosFiltrados.Count == 0)
+                    {
+                        CmbDepartamento.ItemsSource = _todosLosDeptos;
+                    }
+                    else
+                    {
+                        CmbDepartamento.ItemsSource = deptosFiltrados;
+                    }
+
+                    // Restauramos la selección si el departamento sigue siendo válido para el nuevo origen
+                    if (idSeleccionadoPreviamente != null)
+                    {
+                        // Buscamos si el ID seleccionado está en la lista actual (ya sea filtrada o completa)
+                        CmbDepartamento.SelectedValue = idSeleccionadoPreviamente;
+                    }
+
+                    // Si no hay nada seleccionado y solo hay una opción lógica, auto-seleccionamos
+                    if (CmbDepartamento.SelectedValue == null && deptosFiltrados.Count == 1)
+                    {
+                        CmbDepartamento.SelectedItem = deptosFiltrados[0];
+                    }
+                }
+                else
+                {
+                    CmbDepartamento.ItemsSource = _todosLosDeptos;
+                }
             }
         }
 
@@ -279,6 +349,13 @@ namespace Proyecto_GRRLN_expediente
                 return;
             }
 
+            // --- VALIDACIÓN EXTRA DE SEGURIDAD (FECHAS) ---
+            if (DpFechaCompromiso.SelectedDate.Value < DpFechaRecepcion.SelectedDate.Value)
+            {
+                MessageBox.Show("¡Lógica inválida! La Fecha de Compromiso no puede ser anterior a la Fecha de Recepción.", "Error de Datos", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             try
             {
                 using (var conn = DatabaseConnection.GetConnection())
@@ -338,8 +415,27 @@ namespace Proyecto_GRRLN_expediente
 
         private void BtnRegresar_Click(object sender, RoutedEventArgs e) => this.Close();
 
+        private void DpFechaRecepcion_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DpFechaRecepcion.SelectedDate.HasValue)
+            {
+                // Bloqueamos físicamente los días anteriores a la recepción en el calendario de compromiso
+                DpFechaCompromiso.DisplayDateStart = DpFechaRecepcion.SelectedDate.Value;
+
+                // Si ya había una fecha de compromiso elegida y ahora es menor a la recepción, la limpiamos
+                if (DpFechaCompromiso.SelectedDate.HasValue && DpFechaCompromiso.SelectedDate.Value < DpFechaRecepcion.SelectedDate.Value)
+                {
+                    DpFechaCompromiso.SelectedDate = null;
+                }
+            }
+            else
+            {
+                DpFechaCompromiso.DisplayDateStart = null;
+            }
+        }
+
         // MODELOS
-        public class ItemCatalogo { public long Id { get; set; } public string Descripcion { get; set; } }
+        public class ItemCatalogo { public long Id { get; set; } public string Descripcion { get; set; } public long IdPadre { get; set; } public long IdGerencia { get; set; } }
         public class ItemCentroTrabajo : ItemCatalogo { public long IdSap { get; set; } public long IdOrganismo { get; set; } }
         public class ItemUsuario { public string IdFicha { get; set; } public string Descripcion { get; set; } }
     }
