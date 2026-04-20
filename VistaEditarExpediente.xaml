@@ -99,10 +99,16 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="120"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Fecha Recepción:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Fecha Recepción:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14" SelectedDateChanged="DpFechaRecepcion_SelectedDateChanged"/>
 
-                                <TextBlock Grid.Column="3" Text="* Tipo:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Tipo:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <TextBox Grid.Column="4" x:Name="TxtTipo" Text="CASO" IsReadOnly="True" Background="#E2E8F0" Foreground="#475569" FontWeight="Bold" Height="35" FontSize="14" VerticalContentAlignment="Center" TextAlignment="Center"/>
                             </Grid>
 
@@ -111,7 +117,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="* Documento No.:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Documento No.:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <TextBox Grid.Column="1" x:Name="TxtNombreOficio" Height="35" CharacterCasing="Upper" Padding="8,0" FontSize="14" VerticalContentAlignment="Center"/>
                             </Grid>
 
@@ -120,7 +129,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="180"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Fecha del Doc.:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Fecha del Doc.:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <DatePicker Grid.Column="1" x:Name="DpFechaOficio" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
                             </Grid>
 
@@ -129,7 +141,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="250"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Gerencia (SAP):" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Gerencia (SAP):" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbSAP" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
                             </Grid>
 
@@ -138,7 +153,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="250"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Subgerencia (Org.):" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Subgerencia (Org.):" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbOrganismo" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
                             </Grid>
 
@@ -147,7 +165,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Departamento:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Departamento:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbDepartamento" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
                             </Grid>
 
@@ -159,13 +180,19 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Agenda:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Agenda:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbAgenda" Height="35" FontSize="14">
                                     <ComboBoxItem Content="ADMINISTRATIVA"/>
                                     <ComboBoxItem Content="SINDICAL"/>
                                 </ComboBox>
 
-                                <TextBlock Grid.Column="3" Text="Sección:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Sección:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="4" x:Name="CmbSecSindical" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
                             </Grid>
 
@@ -174,7 +201,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Centro Trabajo:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Centro Trabajo:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbCentroTrabajo" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" SelectionChanged="CmbCentroTrabajo_SelectionChanged"/>
                             </Grid>
 
@@ -183,7 +213,10 @@
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="* Tema:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Tema:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbDescCorta" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
                             </Grid>
                         </StackPanel>
@@ -201,7 +234,10 @@
                                     <ColumnDefinition Width="80"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="* Responsable:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" Responsable:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" x:Name="CmbResponsable" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="IdFicha" SelectionChanged="CmbResponsable_SelectionChanged"/>
 
                                 <TextBlock Grid.Column="3" Text="Ficha:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -213,7 +249,10 @@
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="180"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="* F. Compromiso:" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                    <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
+                                    <Run Text=" F. Compromiso:" FontWeight="SemiBold"/>
+                                </TextBlock>
                                 <DatePicker Grid.Column="1" x:Name="DpFechaCompromiso" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
                             </Grid>
 

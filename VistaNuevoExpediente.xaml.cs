@@ -276,14 +276,20 @@ namespace Proyecto_GRRLN_expediente
 
         private void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            // AHORA CmbDescCorta TAMBIÉN ES OBLIGATORIO Y REQUERIDO ANTES DE AVANZAR
             if (!DpFechaRecepcion.SelectedDate.HasValue ||
+                !DpFechaOficio.SelectedDate.HasValue ||
                 string.IsNullOrWhiteSpace(TxtNombreOficio.Text) ||
-                CmbResponsable.SelectedValue == null ||
+                CmbSAP.SelectedValue == null ||
+                CmbOrganismo.SelectedValue == null ||
+                CmbCentroTrabajo.SelectedValue == null ||
+                CmbDepartamento.SelectedValue == null ||
+                CmbAgenda.SelectedValue == null ||
+                CmbSecSindical.SelectedValue == null ||
                 CmbDescCorta.SelectedValue == null ||
+                CmbResponsable.SelectedValue == null ||
                 !DpFechaCompromiso.SelectedDate.HasValue)
             {
-                MessageBox.Show("Por favor, llena todos los campos obligatorios marcados con asterisco (*).", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Por favor, llena todos los campos obligatorios (*).", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
