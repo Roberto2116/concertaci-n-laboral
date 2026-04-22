@@ -8,8 +8,7 @@
                  WindowState="Maximized"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
-                 Background="Transparent"
-                 Loaded="UserControl_Loaded">
+                 Background="Transparent">
 
     <Window.Resources>
         <local:SemaforoColorConverter x:Key="SemaforoConverter"/>
@@ -31,7 +30,7 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
                 <ui:Button Content="Cerrar Búsqueda" Icon="Dismiss24" Appearance="Secondary" 
                            Height="36" Cursor="Hand" Margin="0,0,15,0" 
-                           Click="BtnRegresar_Click"/>
+                           Command="{Binding RegresarCommand}"/>
                 <TextBlock Text="BÚSQUEDA AVANZADA DE ASUNTOS" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
             </StackPanel>
 
@@ -43,21 +42,24 @@
                 <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Margin="0,0,25,10">
                         <TextBlock Text="Palabra clave / Oficio:" FontWeight="SemiBold" Foreground="#555555" Margin="0,0,0,8"/>
-                        <ui:TextBox x:Name="TxtBusqueda" Width="260" Height="38" CharacterCasing="Upper" ClearButtonEnabled="True" PlaceholderText="Ej: Folio o Nombre"/>
+                        <ui:TextBox x:Name="TxtBusqueda" Width="260" Height="38" CharacterCasing="Upper" ClearButtonEnabled="True" PlaceholderText="Ej: Folio o Nombre"
+                                    Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <StackPanel Margin="0,0,25,10">
                         <TextBlock Text="Estado del Trámite:" FontWeight="SemiBold" Foreground="#555555" Margin="0,0,0,8"/>
-                        <ComboBox x:Name="CmbEstado" Width="220" Height="38" FontSize="14" VerticalContentAlignment="Center" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                        <ComboBox x:Name="CmbEstado" Width="220" Height="38" FontSize="14" VerticalContentAlignment="Center" DisplayMemberPath="Descripcion" SelectedValuePath="Id"
+                                  ItemsSource="{Binding ListaEstatus}" SelectedValue="{Binding EstadoSeleccionado, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <StackPanel Margin="0,0,25,10">
                         <TextBlock Text="Sede SAP:" FontWeight="SemiBold" Foreground="#555555" Margin="0,0,0,8"/>
-                        <ComboBox x:Name="CmbSede" Width="220" Height="38" FontSize="14" VerticalContentAlignment="Center" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                        <ComboBox x:Name="CmbSede" Width="220" Height="38" FontSize="14" VerticalContentAlignment="Center" DisplayMemberPath="Descripcion" SelectedValuePath="Id"
+                                  ItemsSource="{Binding ListaSedes}" SelectedValue="{Binding SedeSeleccionada, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,22,0,10" VerticalAlignment="Center">
-                        <Button Width="120" Height="38" Margin="0,0,10,0" Cursor="Hand" Click="BtnBuscar_Click">
+                        <Button Width="120" Height="38" Margin="0,0,10,0" Cursor="Hand" Command="{Binding BuscarCommand}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="FondoBoton" Background="#00843D" CornerRadius="4">
@@ -77,7 +79,7 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <ui:Button Content="Limpiar" Click="BtnLimpiar_Click" Width="110" Height="38" 
+                        <ui:Button Content="Limpiar" Command="{Binding LimpiarCommand}" Width="110" Height="38" 
                                    Appearance="Secondary" Cursor="Hand" Icon="ArrowCounterclockwise24"/>
                     </StackPanel>
                 </WrapPanel>
@@ -88,7 +90,8 @@
                           Background="Transparent" 
                           BorderThickness="0"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          MouseDoubleClick="lvResultados_MouseDoubleClick">
+                          ItemsSource="{Binding ListaResultados}"
+                          SelectedItem="{Binding AsuntoSeleccionado}">
 
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
@@ -108,6 +111,11 @@
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Border x:Name="CardBorder" Background="White" CornerRadius="8" BorderThickness="1" BorderBrush="#EAECEE" ClipToBounds="True">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftDoubleClick" 
+                                                  Command="{Binding DataContext.AbrirExpedienteCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                  CommandParameter="{Binding}"/>
+                                </Border.InputBindings>
                                 <Border.RenderTransform>
                                     <TranslateTransform Y="0"/>
                                 </Border.RenderTransform>

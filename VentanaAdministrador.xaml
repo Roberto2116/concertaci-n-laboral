@@ -1,4 +1,4 @@
-﻿<ui:FluentWindow x:Class="Proyecto_GRRLN_expediente.VentanaAdministrador"
+<ui:FluentWindow x:Class="Proyecto_GRRLN_expediente.VentanaAdministrador"
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -9,6 +9,10 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  Background="#F0F4F8">
+                 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -40,27 +44,27 @@
 
                     <ui:Button x:Name="BtnMenuUsuarios" Content="Cuentas de Usuario" Icon="People24" 
                                Appearance="Light" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
-                               Margin="0,0,0,5" Height="40" FontSize="14" Click="BtnMenuUsuarios_Click"/>
+                               Margin="0,0,0,5" Height="40" FontSize="14" Command="{Binding MostrarMenuCommand}" CommandParameter="Usuarios"/>
 
                     <TextBlock Text="CATÁLOGOS OFICIALES" FontSize="12" FontWeight="Bold" Foreground="#94A3B8" Margin="5,20,0,10"/>
 
                     <ui:Button x:Name="BtnMenuSap" Content="Departamentos" Icon="Building24" 
                                Appearance="Light" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
-                               Margin="0,0,0,5" Height="40" FontSize="14" Click="BtnMenuSap_Click"/>
+                               Margin="0,0,0,5" Height="40" FontSize="14" Command="{Binding MostrarMenuCommand}" CommandParameter="Departamentos"/>
 
                     <ui:Button x:Name="BtnMenuOrganismos" Content="Catálogo Organismos" Icon="Flowchart24" 
                                Appearance="Light" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
-                               Margin="0,0,0,5" Height="40" FontSize="14" Click="BtnMenuOrganismos_Click"/>
+                               Margin="0,0,0,5" Height="40" FontSize="14" Command="{Binding MostrarMenuCommand}" CommandParameter="Organismos"/>
 
                     <ui:Button x:Name="BtnSalir" Content="Cerrar Panel" Icon="SignOut24" 
                                Appearance="Danger" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
-                               Margin="0,40,0,0" Height="40" FontSize="14" Click="BtnSalir_Click"/>
+                               Margin="0,40,0,0" Height="40" FontSize="14" Command="{Binding SalirCommand}"/>
                 </StackPanel>
             </Border>
 
             <Grid Grid.Column="1" Margin="25">
 
-                <Grid x:Name="PanelCatalogoSap" Visibility="Collapsed">
+                <Grid x:Name="PanelCatalogoSap" Visibility="{Binding IsPanelSapVisible, Converter={StaticResource BoolToVis}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -84,9 +88,9 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <ui:TextBox x:Name="TxtBuscarSap" Grid.Row="0" PlaceholderText="Buscar por Clave o Descripción..." Icon="Search24" Margin="0,0,0,15" TextChanged="TxtBuscarSap_TextChanged"/>
+                                <ui:TextBox x:Name="TxtBuscarSap" Grid.Row="0" PlaceholderText="Buscar por Clave o Descripción..." Icon="Search24" Margin="0,0,0,15" Text="{Binding TextoBuscarSap, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                <DataGrid x:Name="GridSaps" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="40" SelectionChanged="GridSaps_SelectionChanged">
+                                <DataGrid x:Name="GridSaps" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="40" ItemsSource="{Binding ListaSaps}" SelectedItem="{Binding SapSeleccionado}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="CLAVE DE DEPTO" Binding="{Binding Clave}" Width="150">
                                             <DataGridTextColumn.ElementStyle>
@@ -110,20 +114,20 @@
                                     </StackPanel>
 
                                     <TextBlock Text="Clave del Departamento" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtClaveSap" PlaceholderText="Ej. 200522142" Margin="0,0,0,15" Icon="NumberSymbol24"/>
+                                    <ui:TextBox x:Name="TxtClaveSap" PlaceholderText="Ej. 200522142" Margin="0,0,0,15" Icon="NumberSymbol24" Text="{Binding ClaveSap, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsClaveSapEnabled}"/>
 
                                     <TextBlock Text="Descripción / Nombre" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtDescripcionSap" PlaceholderText="Ej. SUAP TAMPICO" Margin="0,0,0,25"/>
+                                    <ui:TextBox x:Name="TxtDescripcionSap" PlaceholderText="Ej. SUAP TAMPICO" Margin="0,0,0,25" Text="{Binding DescripcionSap, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                    <ui:Button x:Name="BtnGuardarSap" Content="Guardar Departamento" Appearance="Primary" Icon="Save24" HorizontalAlignment="Stretch" Margin="0,0,0,10" Click="BtnGuardarSap_Click"/>
-                                    <ui:Button x:Name="BtnLimpiarSap" Content="Limpiar / Nuevo" Appearance="Secondary" Icon="DocumentAdd24" HorizontalAlignment="Stretch" Click="BtnLimpiarSap_Click"/>
+                                    <ui:Button x:Name="BtnGuardarSap" Content="{Binding TextoBotonGuardarSap}" Appearance="Primary" Icon="Save24" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding GuardarSapCommand}"/>
+                                    <ui:Button x:Name="BtnLimpiarSap" Content="Limpiar / Nuevo" Appearance="Secondary" Icon="DocumentAdd24" HorizontalAlignment="Stretch" Command="{Binding LimpiarSapCommand}"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
                     </Grid>
                 </Grid>
 
-                <Grid x:Name="PanelUsuarios" Visibility="Visible">
+                <Grid x:Name="PanelUsuarios" Visibility="{Binding IsPanelUsuariosVisible, Converter={StaticResource BoolToVis}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -147,8 +151,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <ui:TextBox x:Name="TxtBuscarUsuario" Grid.Row="0" PlaceholderText="Buscar por Ficha o Nombre..." Icon="Search24" Margin="0,0,0,15" TextChanged="TxtBuscarUsuario_TextChanged"/>
-                                <DataGrid x:Name="GridUsuarios" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="40" SelectionChanged="GridUsuarios_SelectionChanged">
+                                <ui:TextBox x:Name="TxtBuscarUsuario" Grid.Row="0" PlaceholderText="Buscar por Ficha o Nombre..." Icon="Search24" Margin="0,0,0,15" Text="{Binding TextoBuscarUsuario, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGrid x:Name="GridUsuarios" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="40" ItemsSource="{Binding ListaUsuarios}" SelectedItem="{Binding UsuarioSeleccionado}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="FICHA (ID)" Binding="{Binding Ficha}" Width="Auto">
                                             <DataGridTextColumn.ElementStyle>
@@ -175,38 +179,38 @@
                                     </StackPanel>
 
                                     <TextBlock Text="Ficha / ID de Usuario" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtFicha" PlaceholderText="Ej. JefeSoporte o 12345" Margin="0,0,0,10" Icon="ContactCard24"/>
+                                    <ui:TextBox x:Name="TxtFicha" PlaceholderText="Ej. JefeSoporte o 12345" Margin="0,0,0,10" Icon="ContactCard24" Text="{Binding FichaUsuario, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsFichaUsuarioEnabled}"/>
 
                                     <TextBlock Text="Nombre Completo" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtNombreUsuario" PlaceholderText="Ej. Juan Pérez" Margin="0,0,0,10"/>
+                                    <ui:TextBox x:Name="TxtNombreUsuario" PlaceholderText="Ej. Juan Pérez" Margin="0,0,0,10" Text="{Binding NombreUsuario, UpdateSourceTrigger=PropertyChanged}"/>
 
                                     <TextBlock Text="Correo Electrónico" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtCorreo" PlaceholderText="Ej. juan@pemex.com" Margin="0,0,0,10" Icon="Mail24"/>
+                                    <ui:TextBox x:Name="TxtCorreo" PlaceholderText="Ej. juan@pemex.com" Margin="0,0,0,10" Icon="Mail24" Text="{Binding CorreoUsuario, UpdateSourceTrigger=PropertyChanged}"/>
 
                                     <TextBlock x:Name="LblPassword" Text="Contraseña Provisional" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:PasswordBox x:Name="TxtPassword" PlaceholderText="Ingresa contraseña" Margin="0,0,0,10"/>
+                                    <ui:PasswordBox x:Name="TxtPassword" PlaceholderText="Ingresa contraseña" Margin="0,0,0,10" PasswordChanged="TxtPassword_PasswordChanged"/>
 
                                     <TextBlock Text="Estrato / Categoría" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ComboBox x:Name="CmbEstrato" Margin="0,0,0,10" Height="35" SelectionChanged="CmbEstrato_SelectionChanged"/>
+                                    <ComboBox x:Name="CmbEstrato" Margin="0,0,0,10" Height="35" ItemsSource="{Binding ListaEstratos}" SelectedItem="{Binding EstratoSeleccionado}"/>
 
                                     <TextBlock Text="Clave del Depto." FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ComboBox x:Name="CmbClaveDepto" IsEditable="True" DisplayMemberPath="DisplayTexto" SelectedValuePath="Clave" Margin="0,0,0,15" Height="35"/>
+                                    <ComboBox x:Name="CmbClaveDepto" IsEditable="True" DisplayMemberPath="DisplayTexto" SelectedValuePath="Clave" Margin="0,0,0,15" Height="35" ItemsSource="{Binding ListaDepartamentosCmb}" SelectedItem="{Binding DeptoSeleccionado}"/>
 
                                     <TextBlock Text="Tipo de Usuario (Rol de Acceso)" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ComboBox x:Name="CmbRolUsuario" Margin="0,0,0,15" Height="35"/>
+                                    <ComboBox x:Name="CmbRolUsuario" Margin="0,0,0,15" Height="35" ItemsSource="{Binding ListaRoles}" SelectedItem="{Binding RolSeleccionado}"/>
 
                                     <TextBlock Text="Estatus Operativo" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:ToggleSwitch x:Name="ToggleEstatusUsuario" Content="Cuenta Activa (Permitir acceso)" IsChecked="True" Margin="0,0,0,25"/>
+                                    <ui:ToggleSwitch x:Name="ToggleEstatusUsuario" Content="Cuenta Activa (Permitir acceso)" IsChecked="{Binding IsEstatusUsuarioActivo}" Margin="0,0,0,25"/>
 
-                                    <ui:Button x:Name="BtnGuardarUsuario" Content="Guardar Usuario" Appearance="Primary" Icon="Save24" HorizontalAlignment="Stretch" Margin="0,0,0,10" Click="BtnGuardarUsuario_Click"/>
-                                    <ui:Button x:Name="BtnLimpiarUsuario" Content="Limpiar / Nuevo" Appearance="Secondary" Icon="DocumentAdd24" HorizontalAlignment="Stretch" Click="BtnLimpiarUsuario_Click"/>
+                                    <ui:Button x:Name="BtnGuardarUsuario" Content="{Binding TextoBotonGuardarUsuario}" Appearance="Primary" Icon="Save24" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding GuardarUsuarioCommand}"/>
+                                    <ui:Button x:Name="BtnLimpiarUsuario" Content="Limpiar / Nuevo" Appearance="Secondary" Icon="DocumentAdd24" HorizontalAlignment="Stretch" Command="{Binding LimpiarUsuarioCommand}"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
                     </Grid>
                 </Grid>
 
-                <Grid x:Name="PanelOrganismos" Visibility="Collapsed">
+                <Grid x:Name="PanelOrganismos" Visibility="{Binding IsPanelOrganismosVisible, Converter={StaticResource BoolToVis}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -230,9 +234,9 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <ui:TextBox x:Name="TxtBuscarOrganismo" Grid.Row="0" PlaceholderText="Buscar por Organismo (PMXC) o Descripción..." Icon="Search24" Margin="0,0,0,15" TextChanged="TxtBuscarOrganismo_TextChanged"/>
+                                <ui:TextBox x:Name="TxtBuscarOrganismo" Grid.Row="0" PlaceholderText="Buscar por Organismo (PMXC) o Descripción..." Icon="Search24" Margin="0,0,0,15" Text="{Binding TextoBuscarOrganismo, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                <DataGrid x:Name="GridOrganismos" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="40" SelectionChanged="GridOrganismos_SelectionChanged">
+                                <DataGrid x:Name="GridOrganismos" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="40" ItemsSource="{Binding ListaOrganismos}" SelectedItem="{Binding OrganismoSeleccionado}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50">
                                             <DataGridTextColumn.ElementStyle>
@@ -265,16 +269,16 @@
                                     </StackPanel>
 
                                     <TextBlock Text="ID Interno (Automático)" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtIdOrganismo" IsEnabled="False" PlaceholderText="Se asigna solo al guardar" Margin="0,0,0,15" Icon="NumberSymbol24"/>
+                                    <ui:TextBox x:Name="TxtIdOrganismo" IsEnabled="False" PlaceholderText="Se asigna solo al guardar" Margin="0,0,0,15" Icon="NumberSymbol24" Text="{Binding IdOrganismo}"/>
 
                                     <TextBlock Text="Clave (Siglas)" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtClaveOrganismo" PlaceholderText="Ej. PMXC" Margin="0,0,0,15"/>
+                                    <ui:TextBox x:Name="TxtClaveOrganismo" PlaceholderText="Ej. PMXC" Margin="0,0,0,15" Text="{Binding ClaveOrganismo, UpdateSourceTrigger=PropertyChanged}"/>
 
                                     <TextBlock Text="Descripción / Nombre Completo" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,5"/>
-                                    <ui:TextBox x:Name="TxtDescripcionOrganismo" PlaceholderText="Ej. PEMEX CORPORATIVO" Margin="0,0,0,25"/>
+                                    <ui:TextBox x:Name="TxtDescripcionOrganismo" PlaceholderText="Ej. PEMEX CORPORATIVO" Margin="0,0,0,25" Text="{Binding DescripcionOrganismo, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                    <ui:Button x:Name="BtnGuardarOrganismo" Content="Guardar Organismo" Appearance="Primary" Icon="Save24" HorizontalAlignment="Stretch" Margin="0,0,0,10" Click="BtnGuardarOrganismo_Click"/>
-                                    <ui:Button x:Name="BtnLimpiarOrganismo" Content="Limpiar / Nuevo" Appearance="Secondary" Icon="DocumentAdd24" HorizontalAlignment="Stretch" Click="BtnLimpiarOrganismo_Click"/>
+                                    <ui:Button x:Name="BtnGuardarOrganismo" Content="{Binding TextoBotonGuardarOrganismo}" Appearance="Primary" Icon="Save24" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding GuardarOrganismoCommand}"/>
+                                    <ui:Button x:Name="BtnLimpiarOrganismo" Content="Limpiar / Nuevo" Appearance="Secondary" Icon="DocumentAdd24" HorizontalAlignment="Stretch" Command="{Binding LimpiarOrganismoCommand}"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>

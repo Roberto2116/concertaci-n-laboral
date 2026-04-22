@@ -24,7 +24,7 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,0,0,20">
                 <ui:Button Content="Volver al Menú" Icon="ArrowLeft24" Appearance="Secondary" 
                            Height="36" Cursor="Hand" Margin="0,0,15,0" 
-                           Click="BtnRegresar_Click"/>
+                           Command="{Binding RegresarCommand}"/>
                 <TextBlock Text="CENTRO DE COMUNICACIONES" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
             </StackPanel>
 
@@ -47,24 +47,26 @@
                                 <StackPanel>
                                     <TextBlock Text="1. Seleccione el alcance del mensaje:" FontSize="15" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <RadioButton x:Name="RbUsuario" Content="Un Usuario" IsChecked="True" FontSize="14" Margin="0,0,20,0" Checked="RbAlcance_Checked"/>
-                                        <RadioButton x:Name="RbDepto" Content="Un Departamento" FontSize="14" Margin="0,0,20,0" Checked="RbAlcance_Checked"/>
-                                        <RadioButton x:Name="RbSAP" Content="Aviso Global (Todos)" FontSize="14" Checked="RbAlcance_Checked"/>
+                                        <RadioButton x:Name="RbUsuario" Content="Un Usuario" IsChecked="{Binding IsAlcanceUsuario}" FontSize="14" Margin="0,0,20,0"/>
+                                        <RadioButton x:Name="RbDepto" Content="Un Departamento" IsChecked="{Binding IsAlcanceDepto}" FontSize="14" Margin="0,0,20,0"/>
+                                        <RadioButton x:Name="RbSAP" Content="Aviso Global (Todos)" IsChecked="{Binding IsAlcanceSAP}" FontSize="14"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
 
                             <TextBlock x:Name="LblDestinatario" Text="2. Seleccione el Destinatario:" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" Foreground="#2C3E50"/>
                             <ComboBox x:Name="CmbBuscadorGlobal" Height="40" Margin="0,0,0,25" FontSize="14" VerticalContentAlignment="Center" 
+                                      ItemsSource="{Binding ListaDestinatarios}" SelectedItem="{Binding DestinatarioSeleccionado}" IsEnabled="{Binding IsBuscadorHabilitado}"
                                       DisplayMemberPath="Nombre" SelectedValuePath="Id" Padding="10,0" Background="#F8F9FA"/>
 
                             <TextBlock Text="3. Contenido del Mensaje:" FontSize="15" FontWeight="Bold" Margin="0,0,0,10" Foreground="#2C3E50"/>
                             <TextBox x:Name="TxtContenidoGlobal" Height="160" TextWrapping="Wrap" AcceptsReturn="True" 
+                                     Text="{Binding ContenidoMensaje, UpdateSourceTrigger=PropertyChanged}"
                                      Margin="0,0,0,30" CharacterCasing="Upper" Padding="12" VerticalContentAlignment="Top" FontSize="14"
                                      BorderBrush="#BDC3C7" BorderThickness="1" Background="#FAFCFC"/>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Width="220" Height="45" Cursor="Hand" Click="BtnEnviarGlobal_Click">
+                                <Button Width="220" Height="45" Cursor="Hand" Command="{Binding EnviarMensajeCommand}">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border x:Name="FondoBoton" Background="#00843D" CornerRadius="6">
@@ -102,11 +104,11 @@
                                 <TextBlock Text="Historial de Mensajes" FontSize="18" FontWeight="Bold" Foreground="#2C3E50" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <ui:TextBox x:Name="TxtBuscarHistorial" PlaceholderText="Buscar en historial..." Icon="Search24" TextChanged="TxtBuscarHistorial_TextChanged"/>
+                            <ui:TextBox x:Name="TxtBuscarHistorial" PlaceholderText="Buscar en historial..." Icon="Search24" Text="{Binding TextoBusquedaHistorial, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl x:Name="icHistorial">
+                            <ItemsControl x:Name="icHistorial" ItemsSource="{Binding ListaHistorialVisible}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="White" CornerRadius="6" Padding="15" Margin="0,0,5,10" BorderBrush="#D5D8DC" BorderThickness="1">
@@ -124,7 +126,7 @@
                                                         </Border>
                                                     </StackPanel>
 
-                                                    <Button Grid.Column="1" Width="28" Height="28" Cursor="Hand" ToolTip="Restaurar a la pantalla de inicio" Click="BtnRestaurar_Click" DataContext="{Binding}">
+                                                    <Button Grid.Column="1" Width="28" Height="28" Cursor="Hand" ToolTip="Restaurar a la pantalla de inicio" Command="{Binding DataContext.RestaurarMensajeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding IdMensaje}">
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="FondoRestaurar" Background="Transparent" CornerRadius="4">

@@ -24,8 +24,8 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,25">
                 <ui:Button Content="Cerrar Bitácora" Icon="Dismiss24" Appearance="Secondary" 
                            Height="36" Cursor="Hand" Margin="0,0,15,0" 
-                           Click="BtnRegresar_Click"/>
-                <TextBlock x:Name="TxtTitulo" Text="SEGUIMIENTO DEL ASUNTO" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
+                           Command="{Binding RegresarCommand}"/>
+                <TextBlock x:Name="TxtTitulo" Text="{Binding TituloBitacora}" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
             </StackPanel>
 
             <Border Grid.Row="1" Background="White" CornerRadius="8" BorderBrush="#EAEDED" BorderThickness="1" Padding="25" Margin="0,0,0,25">
@@ -40,6 +40,7 @@
                     </StackPanel>
 
                     <TextBox x:Name="TxtNuevaBitacora" 
+                             Text="{Binding NuevaBitacora, UpdateSourceTrigger=PropertyChanged}"
                              CharacterCasing="Upper" 
                              Height="90" 
                              TextWrapping="Wrap" 
@@ -50,7 +51,7 @@
                              FontSize="14"
                              BorderBrush="#BDC3C7" BorderThickness="1" Background="#FAFCFC"/>
 
-                    <Button Width="180" Height="40" HorizontalAlignment="Right" Cursor="Hand" Click="BtnGuardar_Click">
+                    <Button Width="180" Height="40" HorizontalAlignment="Right" Cursor="Hand" Command="{Binding GuardarCommand}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
 
@@ -77,7 +78,7 @@
             </Border>
 
             <Border Grid.Row="2" Background="White" CornerRadius="8" BorderBrush="#EAEDED" BorderThickness="1">
-                <DataGrid x:Name="dgBitacora" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" 
+                <DataGrid x:Name="dgBitacora" ItemsSource="{Binding ListaHistorial}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" 
                           SelectionMode="Single" FontSize="14" Background="Transparent" BorderThickness="0"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F4F6F6"
                           AlternatingRowBackground="#FAFCFC">

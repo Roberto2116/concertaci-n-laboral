@@ -37,7 +37,7 @@
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Asunto No." FontSize="18" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,15,0" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="LblProximoFolio" Text="(New)" FontSize="26" FontWeight="Black" Foreground="#2196F3" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="LblProximoFolio" Text="{Binding ProximoFolio}" FontSize="26" FontWeight="Black" Foreground="#2196F3" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <Border Grid.Column="1" Background="White" Padding="15,5" Margin="0,0,0,10" CornerRadius="4" BorderBrush="#E2E8F0" BorderThickness="1">
@@ -51,9 +51,9 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Fecha:" Foreground="#64748B" FontWeight="Bold" Margin="0,0,10,5" TextAlignment="Right"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="LblFechaActual" Text="--" Foreground="#0F172A" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="LblFechaActual" Text="{Binding FechaActual}" Foreground="#0F172A" FontWeight="SemiBold"/>
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Usuario:" Foreground="#64748B" FontWeight="Bold" Margin="0,0,10,0" TextAlignment="Right"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="LblUsuarioActual" Text="--" Foreground="#0F172A" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="LblUsuarioActual" Text="{Binding UsuarioActual}" Foreground="#0F172A" FontWeight="SemiBold"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -81,7 +81,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Fecha Recepción:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14" SelectedDateChanged="DpFechaRecepcion_SelectedDateChanged"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaRecepcion" Height="35" FontSize="14" SelectedDate="{Binding FechaRecepcion, UpdateSourceTrigger=PropertyChanged}"/>
 
                                 <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0">
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
@@ -99,7 +99,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Documento No.:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <TextBox Grid.Column="1" x:Name="TxtNombreOficio" Height="35" CharacterCasing="Upper" Padding="8,0" FontSize="14" VerticalContentAlignment="Center"/>
+                                <TextBox Grid.Column="1" x:Name="TxtNombreOficio" Text="{Binding NombreOficio, UpdateSourceTrigger=PropertyChanged}" Height="35" CharacterCasing="Upper" Padding="8,0" FontSize="14" VerticalContentAlignment="Center"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -111,7 +111,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Fecha del Doc.:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <DatePicker Grid.Column="1" x:Name="DpFechaOficio" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaOficio" SelectedDate="{Binding FechaOficio, UpdateSourceTrigger=PropertyChanged}" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -123,7 +123,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Gerencia (SAP):" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbSAP" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbSAP" ItemsSource="{Binding ListaSAP}" SelectedValue="{Binding SapSeleccionado}" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -135,7 +135,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Subgerencia (Org.):" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbOrganismo" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbOrganismo" ItemsSource="{Binding ListaOrganismo}" SelectedValue="{Binding OrganismoSeleccionado}" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" HorizontalAlignment="Left" Width="250"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -147,7 +147,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Departamento:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbDepartamento" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbDepartamento" ItemsSource="{Binding ListaDepartamentos}" SelectedItem="{Binding DepartamentoSeleccionado}" Height="35" FontSize="14" DisplayMemberPath="Descripcion"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -162,16 +162,14 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Agenda:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbAgenda" Height="35" FontSize="14">
-                                    <ComboBoxItem Content="ADMINISTRATIVA"/>
-                                    <ComboBoxItem Content="SINDICAL"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbAgenda" ItemsSource="{Binding ListaAgendas}" SelectedItem="{Binding AgendaSeleccionada}" Height="35" FontSize="14">
                                 </ComboBox>
 
                                 <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0">
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Sección:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="4" x:Name="CmbSecSindical" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                                <ComboBox Grid.Column="4" x:Name="CmbSecSindical" ItemsSource="{Binding ListaSecSindical}" SelectedValue="{Binding SecSindicalSeleccionada}" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -183,7 +181,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Centro Trabajo:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbCentroTrabajo" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id" SelectionChanged="CmbCentroTrabajo_SelectionChanged"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbCentroTrabajo" ItemsSource="{Binding ListaCentrosTrabajo}" SelectedItem="{Binding CentroTrabajoSeleccionado}" Height="35" FontSize="14" DisplayMemberPath="Descripcion"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,12">
@@ -195,7 +193,7 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Tema:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbDescCorta" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbDescCorta" ItemsSource="{Binding ListaDescCorta}" SelectedValue="{Binding DescCortaSeleccionada}" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="Id"/>
                             </Grid>
 
                         </StackPanel>
@@ -216,10 +214,10 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" Responsable:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <ComboBox Grid.Column="1" x:Name="CmbResponsable" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="IdFicha" SelectionChanged="CmbResponsable_SelectionChanged"/>
+                                <ComboBox Grid.Column="1" x:Name="CmbResponsable" ItemsSource="{Binding ListaResponsables}" SelectedValue="{Binding ResponsableSeleccionado}" IsEnabled="{Binding ResponsableEnabled}" Height="35" FontSize="14" DisplayMemberPath="Descripcion" SelectedValuePath="IdFicha"/>
 
                                 <TextBlock Grid.Column="3" Text="Ficha:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox Grid.Column="4" x:Name="TxtFichaVisual" Height="35" FontSize="14" IsReadOnly="True" Background="#F1F5F9" FontWeight="Bold" Foreground="#64748B" VerticalContentAlignment="Center" TextAlignment="Center"/>
+                                <TextBox Grid.Column="4" x:Name="TxtFichaVisual" Text="{Binding FichaVisual}" Height="35" FontSize="14" IsReadOnly="True" Background="#F1F5F9" FontWeight="Bold" Foreground="#64748B" VerticalContentAlignment="Center" TextAlignment="Center"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,20">
@@ -231,14 +229,14 @@
                                     <Run Text="*" Foreground="#D32F2F" FontWeight="Bold"/>
                                     <Run Text=" F. Compromiso:" FontWeight="SemiBold"/>
                                 </TextBlock>
-                                <DatePicker Grid.Column="1" x:Name="DpFechaCompromiso" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
+                                <DatePicker Grid.Column="1" x:Name="DpFechaCompromiso" SelectedDate="{Binding FechaCompromiso, UpdateSourceTrigger=PropertyChanged}" Height="35" FontSize="14" HorizontalAlignment="Left" Width="180"/>
                             </Grid>
 
                             <TextBlock Text="Instrucciones para la atención:" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,5"/>
-                            <TextBox x:Name="TxtInstruccion" Height="100" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14" Margin="0,0,0,15"/>
+                            <TextBox x:Name="TxtInstruccion" Text="{Binding Instruccion, UpdateSourceTrigger=PropertyChanged}" Height="100" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14" Margin="0,0,0,15"/>
 
                             <TextBlock Text="Observaciones a considerar en la Gestión del Asunto:" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,5"/>
-                            <TextBox x:Name="TxtObservaciones" Height="100" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
+                            <TextBox x:Name="TxtObservaciones" Text="{Binding Observaciones, UpdateSourceTrigger=PropertyChanged}" Height="100" TextWrapping="Wrap" AcceptsReturn="True" CharacterCasing="Upper" Padding="8" FontSize="14"/>
                         </StackPanel>
                     </GroupBox>
                 </Grid>
@@ -247,7 +245,7 @@
             <Grid Grid.Row="2" Margin="0,10,0,0">
                 <TextBlock Text="* Campos Obligatorios" Foreground="#D32F2F" FontWeight="Bold" VerticalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Width="180" Height="45" Cursor="Hand" Click="BtnGuardar_Click" Margin="0,0,20,0">
+                    <Button Width="180" Height="45" Cursor="Hand" Command="{Binding GuardarCommand}" Margin="0,0,20,0">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="FondoBoton" Background="#00843D" CornerRadius="6">
@@ -265,7 +263,7 @@
                         </Button.Template>
                     </Button>
 
-                    <Button Width="180" Height="45" Cursor="Hand" Click="BtnRegresar_Click">
+                    <Button Width="180" Height="45" Cursor="Hand" Command="{Binding RegresarCommand}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="FondoBotonC" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6">

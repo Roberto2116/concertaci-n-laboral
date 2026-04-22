@@ -56,23 +56,33 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <ui:Button Content="Volver" Icon="ArrowLeft24" Appearance="Secondary" Height="40" Click="BtnRegresar_Click" Margin="0,0,20,0"/>
+                    <ui:Button Content="Volver" Icon="ArrowLeft24" Appearance="Secondary" Height="40" Command="{Binding RegresarCommand}" Margin="0,0,20,0"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="PANEL DE CONTROL Y PRODUCTIVIDAD" FontSize="26" FontWeight="Black" Foreground="#0F172A"/>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel x:Name="PanelFiltros" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedIndex, ElementName=MainTabControl}" Value="1">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
                     <TextBlock Text="Desde:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748B" FontWeight="SemiBold"/>
-                    <DatePicker x:Name="DpInicio" Width="120" Height="35" Margin="0,0,15,0" SelectedDateChanged="Filtros_Changed"/>
+                    <DatePicker x:Name="DpInicio" Width="120" Height="35" Margin="0,0,15,0" SelectedDate="{Binding FechaInicio, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Hasta:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748B" FontWeight="SemiBold"/>
-                    <DatePicker x:Name="DpFin" Width="120" Height="35" Margin="0,0,20,0" SelectedDateChanged="Filtros_Changed"/>
+                    <DatePicker x:Name="DpFin" Width="120" Height="35" Margin="0,0,20,0" SelectedDate="{Binding FechaFin, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="SAP:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#64748B" FontWeight="SemiBold"/>
-                    <ComboBox x:Name="CmbFiltroSap" Width="180" Height="35" SelectionChanged="Filtros_Changed"/>
+                    <ComboBox x:Name="CmbFiltroSap" Width="180" Height="35" ItemsSource="{Binding ListaSaps}" SelectedItem="{Binding SapSeleccionado, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
             </Grid>
 
-            <TabControl x:Name="MainTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" SelectionChanged="MainTabControl_SelectionChanged">
+            <TabControl x:Name="MainTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0">
 
                 <TabItem>
                     <TabItem.Header>
@@ -98,28 +108,40 @@
                                 <ColumnDefinition Width="15"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardTotal_Click" ToolTip="Ver todos los asuntos">
+                            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" ToolTip="Ver todos los asuntos">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding MostrarDetalleCommand}" CommandParameter="TOTAL"/>
+                                </Border.InputBindings>
                                 <StackPanel>
                                     <TextBlock Text="TOTAL ASUNTOS" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
-                                    <TextBlock x:Name="TxtTotal" Text="0" FontSize="36" FontWeight="Black" Foreground="#0F172A"/>
+                                    <TextBlock x:Name="TxtTotal" Text="{Binding TotalAsuntos}" FontSize="36" FontWeight="Black" Foreground="#0F172A"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardCompletados_Click" ToolTip="Ver completados">
+                            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" ToolTip="Ver completados">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding MostrarDetalleCommand}" CommandParameter="COMPLETADOS"/>
+                                </Border.InputBindings>
                                 <StackPanel>
                                     <TextBlock Text="COMPLETADOS" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
-                                    <TextBlock x:Name="TxtCompletados" Text="0" FontSize="36" FontWeight="Black" Foreground="#10B981"/>
+                                    <TextBlock x:Name="TxtCompletados" Text="{Binding TotalCompletados}" FontSize="36" FontWeight="Black" Foreground="#10B981"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="4" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardProceso_Click" ToolTip="Ver asuntos en proceso">
+                            <Border Grid.Column="4" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" ToolTip="Ver asuntos en proceso">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding MostrarDetalleCommand}" CommandParameter="PROCESO"/>
+                                </Border.InputBindings>
                                 <StackPanel>
                                     <TextBlock Text="EN PROCESO" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
-                                    <TextBlock x:Name="TxtProceso" Text="0" FontSize="36" FontWeight="Black" Foreground="#F59E0B"/>
+                                    <TextBlock x:Name="TxtProceso" Text="{Binding TotalProceso}" FontSize="36" FontWeight="Black" Foreground="#F59E0B"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="6" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" MouseLeftButtonDown="CardVencidos_Click" ToolTip="Ver asuntos vencidos">
+                            <Border Grid.Column="6" Background="White" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="#E2E8F0" Cursor="Hand" ToolTip="Ver asuntos vencidos">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding MostrarDetalleCommand}" CommandParameter="VENCIDOS"/>
+                                </Border.InputBindings>
                                 <StackPanel>
                                     <TextBlock Text="VENCIDOS" Foreground="#64748B" FontWeight="Bold" FontSize="12"/>
-                                    <TextBlock x:Name="TxtVencidos" Text="0" FontSize="36" FontWeight="Black" Foreground="#EF4444"/>
+                                    <TextBlock x:Name="TxtVencidos" Text="{Binding TotalVencidos}" FontSize="36" FontWeight="Black" Foreground="#EF4444"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -145,7 +167,7 @@
                                             <chart:SfChart.Behaviors>
                                                 <chart:ChartTooltipBehavior Position="Pointer" HorizontalOffset="15" VerticalOffset="15" ShowDuration="60000"/>
                                             </chart:SfChart.Behaviors>
-                                            <chart:DoughnutSeries x:Name="DonaSap" XBindingPath="Nombre" YBindingPath="Cantidad" DoughnutCoefficient="0.6" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
+                                            <chart:DoughnutSeries x:Name="DonaSap" ItemsSource="{Binding DatosDona}" XBindingPath="Nombre" YBindingPath="Cantidad" DoughnutCoefficient="0.6" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
                                                 <chart:DoughnutSeries.Resources>
                                                     <Style TargetType="chart:ChartTooltip">
                                                         <Setter Property="Background" Value="Transparent"/>
@@ -226,7 +248,7 @@
                                                 <gauge:SfCircularGauge.Scales>
                                                     <gauge:CircularScale StartValue="0" EndValue="100" Interval="20" RimStroke="#E2E8F0" RimStrokeThickness="15" TickStroke="#64748B" SmallTickStroke="#64748B">
                                                         <gauge:CircularScale.Pointers>
-                                                            <gauge:CircularPointer x:Name="PunteroAvance" Value="0" NeedlePointerStroke="#0F172A" NeedlePointerStrokeThickness="5" />
+                                                            <gauge:CircularPointer x:Name="PunteroAvance" Value="{Binding PromedioAvance}" NeedlePointerStroke="#0F172A" NeedlePointerStrokeThickness="5" />
                                                         </gauge:CircularScale.Pointers>
                                                         <gauge:CircularScale.Ranges>
                                                             <gauge:CircularRange StartValue="0" EndValue="33" Stroke="#EF4444" StrokeThickness="15"/>
@@ -236,7 +258,7 @@
                                                     </gauge:CircularScale>
                                                 </gauge:SfCircularGauge.Scales>
                                             </gauge:SfCircularGauge>
-                                            <TextBlock x:Name="TxtPromedioGauge" Grid.Row="1" Text="0%" FontSize="22" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
+                                            <TextBlock x:Name="TxtPromedioGauge" Grid.Row="1" Text="{Binding PromedioAvanceTexto}" FontSize="22" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -260,6 +282,7 @@
                                         </chart:SfChart.Legend>
 
                                         <chart:StackingColumnSeries x:Name="StackCompletados" Label="Completados" 
+                                                                    ItemsSource="{Binding DatosRendimientoUsuarios}"
                                                                     XBindingPath="NombreUsuario" YBindingPath="Completados" 
                                                                     ShowTooltip="True" EnableAnimation="True">
                                             <chart:StackingColumnSeries.Interior>
@@ -268,6 +291,7 @@
                                         </chart:StackingColumnSeries>
 
                                         <chart:StackingColumnSeries x:Name="StackProceso" Label="En Proceso" 
+                                                                    ItemsSource="{Binding DatosRendimientoUsuarios}"
                                                                     XBindingPath="NombreUsuario" YBindingPath="EnProceso" 
                                                                     ShowTooltip="True" EnableAnimation="True">
                                             <chart:StackingColumnSeries.Interior>
@@ -276,6 +300,7 @@
                                         </chart:StackingColumnSeries>
 
                                         <chart:StackingColumnSeries x:Name="StackVencidos" Label="Vencidos" 
+                                                                    ItemsSource="{Binding DatosRendimientoUsuarios}"
                                                                     XBindingPath="NombreUsuario" YBindingPath="Vencidos" 
                                                                     ShowTooltip="True" EnableAnimation="True">
                                             <chart:StackingColumnSeries.Interior>
@@ -295,10 +320,10 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0" Margin="0,0,0,15">
-                                        <TextBlock x:Name="TxtTituloDetalle" Text="Detalle Oficial de Expedientes" FontSize="20" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                                        <ui:Button Content="Cerrar Detalles" Icon="Dismiss24" Appearance="Danger" HorizontalAlignment="Right" Click="BtnCerrarDetalles_Click"/>
+                                        <TextBlock x:Name="TxtTituloDetalle" Text="{Binding TituloDetalle}" FontSize="20" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        <ui:Button Content="Cerrar Detalles" Icon="Dismiss24" Appearance="Danger" HorizontalAlignment="Right" Command="{Binding CerrarDetalleCommand}"/>
                                     </Grid>
-                                    <DataGrid x:Name="GridDatosKpi" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0" RowHeight="45">
+                                    <DataGrid x:Name="GridDatosKpi" Grid.Row="1" ItemsSource="{Binding AsuntosDetalle}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0" RowHeight="45">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="NO. EXPEDIENTE" Binding="{Binding ID}"/>
                                             <DataGridTextColumn Header="SAP" Binding="{Binding SAP}"/>
@@ -337,25 +362,25 @@
                             <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="20" Margin="0,0,10,0" BorderThickness="1" BorderBrush="#E2E8F0">
                                 <StackPanel>
                                     <TextBlock Text="TOTAL USUARIOS" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
-                                    <TextBlock x:Name="LblTotalUsuarios" Text="0" FontSize="36" FontWeight="Black" Foreground="#0F172A" Margin="0,5,0,0"/>
+                                    <TextBlock x:Name="LblTotalUsuarios" Text="{Binding TotalUsuarios}" FontSize="36" FontWeight="Black" Foreground="#0F172A" Margin="0,5,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="20" Margin="5,0,5,0" BorderThickness="1" BorderBrush="#E2E8F0">
                                 <StackPanel>
                                     <TextBlock Text="SESIONES INICIADAS" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
-                                    <TextBlock x:Name="LblTotalSesiones" Text="0" FontSize="36" FontWeight="Black" Foreground="#2196F3" Margin="0,5,0,0"/>
+                                    <TextBlock x:Name="LblTotalSesiones" Text="{Binding TotalSesiones}" FontSize="36" FontWeight="Black" Foreground="#2196F3" Margin="0,5,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="20" Margin="5,0,5,0" BorderThickness="1" BorderBrush="#E2E8F0">
                                 <StackPanel>
                                     <TextBlock Text="SESIONES PROMEDIO" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
-                                    <TextBlock x:Name="LblPromedioSesiones" Text="0" FontSize="36" FontWeight="Black" Foreground="#4CAF50" Margin="0,5,0,0"/>
+                                    <TextBlock x:Name="LblPromedioSesiones" Text="{Binding PromedioSesiones}" FontSize="36" FontWeight="Black" Foreground="#4CAF50" Margin="0,5,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="3" Background="White" CornerRadius="8" Padding="20" Margin="10,0,0,0" BorderThickness="1" BorderBrush="#E2E8F0">
                                 <StackPanel>
                                     <TextBlock Text="MÁS ACTIVO" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
-                                    <TextBlock x:Name="LblTopUsuario" Text="-" FontSize="20" FontWeight="Black" Foreground="#FF9800" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="LblTopUsuario" Text="{Binding TopUsuario}" FontSize="20" FontWeight="Black" Foreground="#FF9800" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -374,7 +399,7 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <TextBlock Text="Ranking y Capacidad Operativa" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
-                                    <DataGrid x:Name="GridRankingPersonal" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="45" HeadersVisibility="Column" SelectionChanged="GridRankingPersonal_SelectionChanged">
+                                    <DataGrid x:Name="GridRankingPersonal" Grid.Row="1" ItemsSource="{Binding ListaRankingGlobal}" SelectedItem="{Binding UsuarioSeleccionado}" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="45" HeadersVisibility="Column">
                                         <DataGrid.Resources>
                                             <Style TargetType="DataGridColumnHeader">
                                                 <Setter Property="Background" Value="#F1F5F9"/>
@@ -471,7 +496,7 @@
                                             <chart:ChartLegend DockPosition="Bottom" HorizontalAlignment="Center" IconWidth="16" IconHeight="16" FontSize="13"/>
                                         </chart:SfChart.Legend>
 
-                                        <chart:RadarSeries x:Name="RadarEmpleado" Label="Usuario Seleccionado" XBindingPath="Metrica" YBindingPath="Valor" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
+                                        <chart:RadarSeries x:Name="RadarEmpleado" ItemsSource="{Binding DatosRadarEmpleado}" Label="{Binding RadarEmpleadoLabel}" XBindingPath="Metrica" YBindingPath="Valor" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
                                             <chart:RadarSeries.Stroke>
                                                 <SolidColorBrush Color="#2196F3"/>
                                             </chart:RadarSeries.Stroke>
@@ -480,7 +505,7 @@
                                             </chart:RadarSeries.Interior>
                                         </chart:RadarSeries>
 
-                                        <chart:RadarSeries x:Name="RadarPromedio" Label="Promedio " XBindingPath="Metrica" YBindingPath="Valor" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
+                                        <chart:RadarSeries x:Name="RadarPromedio" ItemsSource="{Binding DatosRadarPromedio}" Label="Promedio " XBindingPath="Metrica" YBindingPath="Valor" EnableAnimation="True" ShowTooltip="True" LegendIcon="Circle">
                                             <chart:RadarSeries.Stroke>
                                                 <SolidColorBrush Color="#64748B"/>
                                             </chart:RadarSeries.Stroke>

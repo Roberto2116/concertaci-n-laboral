@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Proyecto_GRRLN_expediente.VistaInicio"
+<UserControl x:Class="Proyecto_GRRLN_expediente.VistaInicio"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -24,7 +24,7 @@
             <Button x:Name="BtnArchivarTodo" Grid.Column="1" Width="50" Height="50" 
                     Cursor="Hand" ToolTip="Archivar todos los mensajes" 
                     VerticalAlignment="Center" Margin="15,0,0,0"
-                    Click="BtnArchivarTodo_Click">
+                    Command="{Binding ArchivarTodoCommand}">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="FondoBoton" Background="#EBF5FB" CornerRadius="6">
@@ -45,14 +45,14 @@
 
         <Grid Grid.Row="1">
 
-            <StackPanel x:Name="PanelSinAvisos" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+            <StackPanel x:Name="PanelSinAvisos" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding PanelSinAvisosVisibility}">
                 <ui:SymbolIcon Symbol="Mail24" FontSize="64" Foreground="#CBD5E1" HorizontalAlignment="Center" Margin="0,0,0,15"/>
                 <TextBlock Text="¡Estás al día!" FontSize="20" FontWeight="Bold" Foreground="#475569" HorizontalAlignment="Center"/>
                 <TextBlock Text="No tienes notificaciones pendientes de leer." Foreground="#94A3B8" FontSize="14" HorizontalAlignment="Center" Margin="0,5,0,0"/>
             </StackPanel>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl x:Name="icAvisos">
+                <ItemsControl x:Name="icAvisos" ItemsSource="{Binding Avisos}" Visibility="{Binding ListaAvisosVisibility}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Background="White" CornerRadius="8" Margin="0,0,10,15" Padding="20" 
@@ -88,7 +88,8 @@
 
                                     <Button Grid.Column="1" Width="36" Height="36" Cursor="Hand" ToolTip="Archivar este mensaje" 
                                             VerticalAlignment="Center" Margin="15,0,0,0"
-                                            Click="BtnArchivar_Click" DataContext="{Binding}">
+                                            Command="{Binding DataContext.ArchivarCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Border x:Name="FondoBotonCard" Background="#EBF5FB" CornerRadius="6">

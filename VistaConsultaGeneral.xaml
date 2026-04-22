@@ -26,15 +26,15 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,25">
                 <ui:Button Content="Cerrar Búsqueda" Icon="Dismiss24" Appearance="Secondary" 
                            Height="36" Cursor="Hand" Margin="0,0,15,0" 
-                           Click="BtnRegresar_Click"/>
+                           Command="{Binding RegresarCommand}"/>
                 <TextBlock Text="SEGUIMIENTO GENERAL DE ASUNTOS" FontSize="22" FontWeight="Black" Foreground="#2C3E50" VerticalAlignment="Center"/>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
                 <ui:TextBox x:Name="TxtBuscar" Width="450" Height="38" FontSize="14" 
+                    Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged, Delay=400}"
                     PlaceholderText="Buscar folio, asunto, departamento o SAP..." 
-                    Icon="Search24" ClearButtonEnabled="True"
-                    TextChanged="TxtBuscar_TextChanged"/>
+                    Icon="Search24" ClearButtonEnabled="True"/>
             </StackPanel>
 
             <Border Grid.Row="2" Background="White" CornerRadius="8" BorderBrush="#EAEDED" BorderThickness="1">
@@ -42,8 +42,8 @@
                     <DropShadowEffect Color="#DDDDDD" BlurRadius="10" ShadowDepth="1" Opacity="0.3"/>
                 </Border.Effect>
 
-                <DataGrid x:Name="GridAsuntos" AutoGenerateColumns="False" CanUserAddRows="False"
-                          Background="Transparent" BorderThickness="0" RowHeight="55"
+                <DataGrid x:Name="GridAsuntos" ItemsSource="{Binding ListaAsuntos}" AutoGenerateColumns="False" CanUserAddRows="False"
+                          Background="Transparent" BorderThickness="0" RowHeight="70"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F4F6F6"
                           AlternatingRowBackground="#FAFCFC">
 
@@ -62,8 +62,8 @@
                         <DataGridTemplateColumn Header="FOLIO" Width="70">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Click="BtnEditar_Click" 
-                                            DataContext="{Binding}"
+                                    <Button Command="{Binding DataContext.EditarExpedienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding Id}"
                                             Cursor="Hand"
                                             HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"
                                             ToolTip="Haz clic para editar este asunto">
@@ -116,12 +116,12 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="DEPARTAMENTO" Binding="{Binding Departamento}" Width="1.5*" IsReadOnly="True">
+                        <DataGridTextColumn Header="DEPARTAMENTO" Binding="{Binding Departamento}" Width="2.5*" IsReadOnly="True">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="TextWrapping" Value="Wrap"/>
                                     <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="5"/>
+                                    <Setter Property="Padding" Value="5,5,15,5"/>
                                     <Setter Property="Foreground" Value="#555555"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
@@ -151,6 +151,11 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid Margin="10,5">
+                                        <Grid.InputBindings>
+                                            <MouseBinding MouseAction="LeftDoubleClick" 
+                                                          Command="{Binding DataContext.ModificarAvanceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                          CommandParameter="{Binding}"/>
+                                        </Grid.InputBindings>
                                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding Avance}" 
                                                      Height="12" Foreground="#00843D" Background="#EAECEE" BorderThickness="0"
                                                      VerticalAlignment="Center"/>
