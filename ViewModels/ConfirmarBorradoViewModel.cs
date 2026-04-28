@@ -9,6 +9,20 @@ namespace Proyecto_GRRLN_expediente.ViewModels
     public class ConfirmarBorradoViewModel : ViewModelBase
     {
         private bool? _dialogResult;
+        private string _mensajeAutorizacion = "Esta acción requiere autorización de seguridad. Por favor, ingrese su contraseña:";
+
+        public string MensajeAutorizacion
+        {
+            get => _mensajeAutorizacion;
+            set => SetProperty(ref _mensajeAutorizacion, value);
+        }
+
+        private string _motivo = "";
+        public string Motivo
+        {
+            get => _motivo;
+            set => SetProperty(ref _motivo, value);
+        }
 
         public bool? DialogResult
         {
@@ -35,6 +49,12 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         {
             var passwordBox = parameter as System.Windows.Controls.PasswordBox;
             if (passwordBox == null) return;
+
+            if (string.IsNullOrWhiteSpace(Motivo))
+            {
+                MessageBox.Show("Debe especificar el motivo de la baja.", "Campo Requerido", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             if (SesionSistema.UsuarioLogueado != null)
             {

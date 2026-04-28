@@ -132,8 +132,8 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                                 {
                                     ListaDestinatarios.Add(new DestinatarioModel
                                     {
-                                        Id = reader.GetString(0),
-                                        Nombre = $"{reader.GetString(0)} - {reader.GetString(1)}"
+                                        Id = reader[0].ToString(),
+                                        Nombre = $"{reader[0].ToString()} - {reader[1].ToString()}"
                                     });
                                 }
                             }
@@ -145,7 +145,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             {
                                 while (reader.Read())
                                 {
-                                    string depto = reader.GetString(0);
+                                    string depto = reader[0].ToString();
                                     ListaDestinatarios.Add(new DestinatarioModel
                                     {
                                         Id = depto,
@@ -201,35 +201,35 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         command.CommandText = @"
                             INSERT INTO Mensaje (ficha, mensaje_enviado, fecha_posteo, Tipo_alcance, Ficha_destino, clave_depto_destino) 
-                            VALUES ($ficha, $msj, $fecha, $alcance, $fichaDest, $claveDest)";
+                            VALUES (@ficha, @msj, @fecha, @alcance, @fichaDest, @claveDest)";
 
                         string fichaActiva = SesionSistema.UsuarioLogueado != null ? SesionSistema.UsuarioLogueado.Ficha : "admin";
-                        command.Parameters.AddWithValue("$ficha", fichaActiva);
-                        command.Parameters.AddWithValue("$msj", ContenidoMensaje.Trim().ToUpper());
-                        command.Parameters.AddWithValue("$fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                        command.Parameters.AddWithValue("$alcance", alcance);
+                        command.Parameters.AddWithValue("@ficha", fichaActiva);
+                        command.Parameters.AddWithValue("@msj", ContenidoMensaje.Trim().ToUpper());
+                        command.Parameters.AddWithValue("@fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        command.Parameters.AddWithValue("@alcance", alcance);
 
                         if (alcance == "PERSONAL")
                         {
-                            command.Parameters.AddWithValue("$fichaDest", destinoTexto);
-                            command.Parameters.AddWithValue("$claveDest", DBNull.Value);
+                            command.Parameters.AddWithValue("@fichaDest", destinoTexto);
+                            command.Parameters.AddWithValue("@claveDest", DBNull.Value);
                         }
                         else if (alcance == "DEPTO")
                         {
-                            command.Parameters.AddWithValue("$fichaDest", DBNull.Value);
-                            if (long.TryParse(destinoTexto, out long deptoNum))
+                            command.Parameters.AddWithValue("@fichaDest", DBNull.Value);
+                            if (int.TryParse(destinoTexto, out int deptoNum))
                             {
-                                command.Parameters.AddWithValue("$claveDest", deptoNum);
+                                command.Parameters.AddWithValue("@claveDest", deptoNum);
                             }
                             else
                             {
-                                command.Parameters.AddWithValue("$claveDest", destinoTexto);
+                                command.Parameters.AddWithValue("@claveDest", DBNull.Value);
                             }
                         }
                         else // SAP / Global
                         {
-                            command.Parameters.AddWithValue("$fichaDest", DBNull.Value);
-                            command.Parameters.AddWithValue("$claveDest", DBNull.Value);
+                            command.Parameters.AddWithValue("@fichaDest", DBNull.Value);
+                            command.Parameters.AddWithValue("@claveDest", DBNull.Value);
                         }
 
                         command.ExecuteNonQuery();
@@ -264,14 +264,21 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             SELECT Id_mensaje, ficha, mensaje_enviado, fecha_posteo, Tipo_alcance, Archivado 
                             FROM Mensaje 
                             WHERE Archivado = 1 AND ( 
-                                 (Tipo_alcance = 'PERSONAL' AND Ficha_destino = $ficha)
-                              OR (Tipo_alcance = 'DEPTO' AND clave_depto_destino = $depto)
+                                 (Tipo_alcance = 'PERSONAL' AND Ficha_destino = @ficha)
+                              OR (Tipo_alcance = 'DEPTO' AND clave_depto_destino = @depto)
                               OR (Tipo_alcance = 'SAP')
                             )
                             ORDER BY fecha_posteo DESC;";
 
-                        command.Parameters.AddWithValue("$ficha", miFicha ?? "");
-                        command.Parameters.AddWithValue("$depto", miDepto ?? "");
+                        command.Parameters.AddWithValue("@ficha", miFicha ?? "");
+                        if (int.TryParse(miDepto, out int deptoInt))
+                        {
+                            command.Parameters.AddWithValue("@depto", deptoInt);
+                        }
+                        else
+                        {
+                            command.Parameters.AddWithValue("@depto", DBNull.Value);
+                        }
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -279,12 +286,12 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             {
                                 _listaHistorialCompleta.Add(new AvisoModel
                                 {
-                                    IdMensaje = reader.GetInt32(0),
-                                    Emisor = "De: " + reader.GetString(1),
-                                    TextoMensaje = reader.GetString(2),
-                                    Fecha = reader.GetString(3),
-                                    TipoAlcance = reader.GetString(4),
-                                    Archivado = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
+                                    IdMensaje = Convert.ToInt32(reader[0]),
+                                    Emisor = "De: " + reader[1].ToString(),
+                                    TextoMensaje = reader[2].ToString(),
+                                    Fecha = reader[3].ToString(),
+                                    TipoAlcance = reader[4].ToString(),
+                                    Archivado = reader.IsDBNull(5) ? 0 : Convert.ToInt32(reader[5])
                                 });
                             }
                         }
@@ -329,8 +336,8 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         if (conn == null) return;
                         using (var command = conn.CreateCommand())
                         {
-                            command.CommandText = "UPDATE Mensaje SET Archivado = 0 WHERE Id_mensaje = $id";
-                            command.Parameters.AddWithValue("$id", idMensaje);
+                            command.CommandText = "UPDATE Mensaje SET Archivado = 0 WHERE Id_mensaje = @id";
+                            command.Parameters.AddWithValue("@id", idMensaje);
                             command.ExecuteNonQuery();
                         }
                     }

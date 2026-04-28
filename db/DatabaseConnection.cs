@@ -1,69 +1,45 @@
 using System;
 using System.IO;
 using System.Diagnostics;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using System.Windows;
 
 namespace Proyecto_GRRLN_expediente.db
 {
     public class DatabaseConnection
     {
-        public static string RutaConfirmada = "";
+        public static string RutaConfirmada = "Supabase (PostgreSQL)";
 
-        public static SqliteConnection GetConnection()
+        public static NpgsqlConnection GetConnection()
         {
-            try
-            {
-                // 1. Usamos el radar para encontrar dónde está la base de datos
-                string dbPath = EncontrarBaseDeDatos();
+            int maxRetries = 3;
+            int delayMs = 1000;
 
-                if (dbPath == null)
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
                 {
-                    MessageBox.Show("No pude encontrar el archivo PEMEXDB.db por ninguna parte. Revisa que no le hayas cambiado el nombre y que esté en tu proyecto.", "Error Crítico", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return null;
+                    string connectionString = "Host=aws-1-us-west-2.pooler.supabase.com;Database=postgres;Username=postgres.tmouqfcqelmnrhhpodkv;Password=BMPJITGgc3jokrSw;SSL Mode=Require;Trust Server Certificate=true";
+
+                    var conn = new NpgsqlConnection(connectionString);
+                    conn.Open();
+                    return conn;
                 }
-
-                RutaConfirmada = dbPath;
-
-                // 2. Conectamos
-                string connectionString = $"Data Source={dbPath};Mode=ReadWrite;";
-
-                // ¡LA MAGIA AQUÍ! Creamos una conexión NUEVA y FRESCA cada vez que se solicita
-                var conn = new SqliteConnection(connectionString);
-                conn.Open();
-
-                return conn;
+                catch (Exception ex)
+                {
+                    if (i == maxRetries - 1) // Último intento fallido
+                    {
+                        MessageBox.Show($"Error persistente al conectar con Supabase (Intento {i + 1}/{maxRetries}).\n\nDetalle: {ex.Message}", "Error Crítico de Red", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return null;
+                    }
+                    // Esperar un poco antes de reintentar
+                    System.Threading.Thread.Sleep(delayMs);
+                }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error de SQLite al conectar.\n\nArchivo que intentó abrir:\n{RutaConfirmada}\n\nDetalle: {ex.Message}", "Error de BD", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null;
-            }
-        }
-
-        // ==========================================
-        // EL RADAR: Busca el archivo hacia arriba
-        // ==========================================
-        private static string EncontrarBaseDeDatos()
-        {
-            string directorioActual = AppDomain.CurrentDomain.BaseDirectory;
-            DirectoryInfo dir = new DirectoryInfo(directorioActual);
-
-            for (int i = 0; i < 6; i++)
-            {
-                if (dir == null) break;
-
-                string posibleRuta = Path.Combine(dir.FullName, "db", "PEMEXDB.db");
-                if (File.Exists(posibleRuta)) return posibleRuta;
-
-                string posibleRutaSuelto = Path.Combine(dir.FullName, "PEMEXDB.db");
-                if (File.Exists(posibleRutaSuelto)) return posibleRutaSuelto;
-
-                dir = dir.Parent;
-            }
-
             return null;
         }
+
+
 
         public static void CloseConnection()
         {

@@ -13,17 +13,7 @@ namespace Proyecto_GRRLN_expediente
             {
                 InitializeComponent();
                 _idAsunto = idAsunto;
-            }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show("Error en InitializeComponent: " + ex.Message);
-            }
-        }
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            try
-            {
                 var viewModel = new VistaEditarExpedienteViewModel(_idAsunto);
 
                 viewModel.CerrarVentanaAction = () =>
@@ -44,12 +34,26 @@ namespace Proyecto_GRRLN_expediente
                 {
                     new VistaBitacora(id).ShowDialog();
                 };
+                
+                viewModel.ConfirmarBorradoAction = () =>
+                {
+                    ConfirmarBorrado confirmacion = new ConfirmarBorrado();
+                    if (confirmacion.DataContext is ConfirmarBorradoViewModel cvm)
+                    {
+                        cvm.MensajeAutorizacion = "Para eliminar este expediente del sistema, por favor ingrese su contraseña de usuario:";
+                        if (confirmacion.ShowDialog() == true)
+                        {
+                            return cvm.Motivo;
+                        }
+                    }
+                    return null;
+                };
 
                 this.DataContext = viewModel;
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show("Error al cargar la vista de edición: " + ex.Message);
+                MessageBox.Show("Error al inicializar la ventana de edición: " + ex.Message);
             }
         }
     }

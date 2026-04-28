@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.db;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 
@@ -25,6 +25,12 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         public Action AbrirAdministracionAction { get; set; }
         public Action CerrarSesionAction { get; set; }
 
+        private bool _isCapturaVisible;
+        public bool IsCapturaVisible { get => _isCapturaVisible; set => SetProperty(ref _isCapturaVisible, value); }
+
+        private bool _isAdminVisible;
+        public bool IsAdminVisible { get => _isAdminVisible; set => SetProperty(ref _isAdminVisible, value); }
+
         public MainWindowViewModel()
         {
             NavegarExpedientesCommand = new RelayCommand(_ => AbrirExpedientesAction?.Invoke());
@@ -34,6 +40,15 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             NavegarNuevoAvisoCommand = new RelayCommand(_ => AbrirNuevoAvisoAction?.Invoke());
             NavegarAdministracionCommand = new RelayCommand(_ => AbrirAdministracionAction?.Invoke());
             SalirCommand = new RelayCommand(ExecuteSalir);
+
+            // Configurar permisos basados en el Estrato
+            string estrato = SesionGlobal.Estrato?.ToUpper() ?? "";
+            
+            // Gerente NO puede capturar.
+            IsCapturaVisible = estrato != "GERENTE";
+
+            // Jefe NO puede administrar.
+            IsAdminVisible = estrato != "JEFE";
         }
 
         private void ExecuteSalir(object parameter)
@@ -48,24 +63,22 @@ namespace Proyecto_GRRLN_expediente.ViewModels
 
             try
             {
-                SqliteConnection conn = DatabaseConnection.GetConnection();
-                if (conn.State != System.Data.ConnectionState.Open) conn.Open();
-
-                using (var command = conn.CreateCommand())
+                using (NpgsqlConnection conn = DatabaseConnection.GetConnection())
                 {
-                    command.CommandText = "UPDATE Bitacora_Sesiones SET Fecha_Salida = $fecha WHERE Id_Sesion = $id";
-                    command.Parameters.AddWithValue("$fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                    command.Parameters.AddWithValue("$id", SesionGlobal.IdSesionActual);
-                    command.ExecuteNonQuery();
+                    if (conn == null) return;
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE Bitacora_Sesiones SET Fecha_Salida = @fecha WHERE Id_Sesion = @id";
+                        command.Parameters.AddWithValue("@fecha", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        command.Parameters.AddWithValue("@id", SesionGlobal.IdSesionActual);
+                        command.ExecuteNonQuery();
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error al registrar salida: " + ex.Message);
-            }
-            finally
-            {
-                DatabaseConnection.CloseConnection();
             }
         }
     }

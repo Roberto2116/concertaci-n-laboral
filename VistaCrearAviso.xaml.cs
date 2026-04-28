@@ -9,10 +9,7 @@ namespace Proyecto_GRRLN_expediente
         public VistaCrearAviso()
         {
             InitializeComponent();
-        }
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
+            
             var viewModel = new VistaCrearAvisoViewModel();
 
             viewModel.CerrarVentanaAction = () =>

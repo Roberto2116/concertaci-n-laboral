@@ -34,6 +34,10 @@ namespace Proyecto_GRRLN_expediente
             viewModel.ConfirmarBorradoAction = () =>
             {
                 ConfirmarBorrado confirmacion = new ConfirmarBorrado();
+                if (confirmacion.DataContext is ConfirmarBorradoViewModel cvm)
+                {
+                    cvm.MensajeAutorizacion = "Para autorizar el cambio de contraseña del usuario, por favor ingrese su propia contraseña:";
+                }
                 return confirmacion.ShowDialog() == true;
             };
 

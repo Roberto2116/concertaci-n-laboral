@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.db;
 using Proyecto_GRRLN_expediente.modelos;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
@@ -259,11 +259,11 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         cmd.CommandText = "SELECT Id_SAP, Descripcion_Sap FROM Cat_SAP";
                         using (var reader = cmd.ExecuteReader())
-                            while (reader.Read()) ListaSAP.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+                            while (reader.Read()) ListaSAP.Add(new ItemCatalogo { Id = Convert.ToInt64(reader[0]), Descripcion = reader[1].ToString() });
 
                         cmd.CommandText = "SELECT id_organismo, Organismo FROM Organismos";
                         using (var reader = cmd.ExecuteReader())
-                            while (reader.Read()) ListaOrganismo.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+                            while (reader.Read()) ListaOrganismo.Add(new ItemCatalogo { Id = Convert.ToInt64(reader[0]), Descripcion = reader[1].ToString() });
 
                         cmd.CommandText = @"
                             SELECT d.clave_depto, d.descripcion, d.clave_subgerencia, s.clave_gerencia 
@@ -275,10 +275,10 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             {
                                 _todosLosDeptos.Add(new ItemCatalogo 
                                 { 
-                                    Id = reader.GetInt64(0), 
-                                    Descripcion = reader.GetString(1),
-                                    IdPadre = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
-                                    IdGerencia = reader.IsDBNull(3) ? 0 : reader.GetInt64(3)
+                                    Id = Convert.ToInt64(reader[0]), 
+                                    Descripcion = reader[1].ToString(),
+                                    IdPadre = reader.IsDBNull(2) ? 0 : Convert.ToInt64(reader[2]),
+                                    IdGerencia = reader.IsDBNull(3) ? 0 : Convert.ToInt64(reader[3])
                                 });
                             }
                         }
@@ -286,7 +286,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
 
                         cmd.CommandText = "SELECT SeccionSindical, Descripcion FROM AS_CatSecSind";
                         using (var reader = cmd.ExecuteReader())
-                            while (reader.Read()) ListaSecSindical.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+                            while (reader.Read()) ListaSecSindical.Add(new ItemCatalogo { Id = Convert.ToInt64(reader[0]), Descripcion = reader[1].ToString() });
 
                         cmd.CommandText = "SELECT clave_centro, Desc_centroTrabajo, Id_SAP, id_organismo FROM AS_CatCentros";
                         using (var reader = cmd.ExecuteReader())
@@ -295,17 +295,17 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             {
                                 ListaCentrosTrabajo.Add(new ItemCentroTrabajo
                                 {
-                                    Id = reader.GetInt64(0),
-                                    Descripcion = reader.GetString(1),
-                                    IdSap = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
-                                    IdOrganismo = reader.IsDBNull(3) ? 0 : reader.GetInt64(3)
+                                    Id = Convert.ToInt64(reader[0]),
+                                    Descripcion = reader[1].ToString(),
+                                    IdSap = reader.IsDBNull(2) ? 0 : Convert.ToInt64(reader[2]),
+                                    IdOrganismo = reader.IsDBNull(3) ? 0 : Convert.ToInt64(reader[3])
                                 });
                             }
                         }
 
                         cmd.CommandText = "SELECT id_descripcionCorta, tipo_descripcion FROM Descripcion_corta";
                         using (var reader = cmd.ExecuteReader())
-                            while (reader.Read()) ListaDescCorta.Add(new ItemCatalogo { Id = reader.GetInt64(0), Descripcion = reader.GetString(1) });
+                            while (reader.Read()) ListaDescCorta.Add(new ItemCatalogo { Id = Convert.ToInt64(reader[0]), Descripcion = reader[1].ToString() });
                     }
                 }
             }
@@ -328,21 +328,21 @@ namespace Proyecto_GRRLN_expediente.ViewModels
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "SELECT Ficha, nombre FROM usuario WHERE IFNULL(estatus, 1) = 1";
+                        cmd.CommandText = "SELECT Ficha, nombre FROM usuario WHERE COALESCE(estatus, 1) = 1";
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
                                 ListaResponsables.Add(new ItemUsuario
                                 {
-                                    IdFicha = reader.GetString(0),
-                                    Descripcion = $"{reader.GetString(0)} - {reader.GetString(1)}"
+                                    IdFicha = reader[0].ToString(),
+                                    Descripcion = $"{reader[0].ToString()} - {reader[1].ToString()}"
                                 });
                             }
                         }
 
-                        cmd.CommandText = "SELECT tipo FROM usuario WHERE Ficha = $ficha";
-                        cmd.Parameters.AddWithValue("$ficha", miFicha);
+                        cmd.CommandText = "SELECT tipo FROM usuario WHERE Ficha = @ficha";
+                        cmd.Parameters.AddWithValue("@ficha", miFicha);
                         var resultTipo = cmd.ExecuteScalar();
                         if (resultTipo != null && resultTipo != DBNull.Value)
                         {
@@ -458,29 +458,29 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                                 Fecha_recepcion, Tipo, Nombre_oficio, Fecha_oficio, 
                                 id_sap, clave_depto, Agenda, Sec_Sindical, Id_Organismo, 
                                 clave_centroTrabajo, id_descripcionCorta, Id_estatus, Ficha, 
-                                Instruccion, Observaciones, Fecha_Compromiso, Porcentaje_avance
+                                Instruccion, Observaciones, Fecha_Compromiso, Porcentaje_avance, Eliminado
                             ) VALUES (
-                                $fechaRec, $tipo, $nombreOfi, $fechaOfi, 
-                                $sap, $depto, $agenda, $secSind, $org, 
-                                $centro, $descCorta, 1, $ficha, 
-                                $inst, $obs, $fechaComp, 0
+                                @fechaRec, @tipo, @nombreOfi, @fechaOfi, 
+                                @sap, @depto, @agenda, @secSind, @org, 
+                                @centro, @descCorta, 1, @ficha, 
+                                @inst, @obs, @fechaComp, 0, 1
                             )";
 
-                        command.Parameters.AddWithValue("$fechaRec", FechaRecepcion.Value.ToString("yyyy-MM-dd"));
-                        command.Parameters.AddWithValue("$tipo", tipoAsunto);
-                        command.Parameters.AddWithValue("$nombreOfi", NombreOficio.Trim());
-                        command.Parameters.AddWithValue("$fechaOfi", FechaOficio.Value.ToString("yyyy-MM-dd"));
-                        command.Parameters.AddWithValue("$agenda", agenda);
-                        command.Parameters.AddWithValue("$fechaComp", FechaCompromiso.Value.ToString("yyyy-MM-dd"));
-                        command.Parameters.AddWithValue("$inst", instruccion);
-                        command.Parameters.AddWithValue("$obs", observaciones);
-                        command.Parameters.AddWithValue("$sap", SapSeleccionado.Value);
-                        command.Parameters.AddWithValue("$depto", DepartamentoSeleccionado.Id);
-                        command.Parameters.AddWithValue("$secSind", SecSindicalSeleccionada.Value);
-                        command.Parameters.AddWithValue("$org", OrganismoSeleccionado.Value);
-                        command.Parameters.AddWithValue("$centro", CentroTrabajoSeleccionado.Id);
-                        command.Parameters.AddWithValue("$descCorta", DescCortaSeleccionada.Value);
-                        command.Parameters.AddWithValue("$ficha", ResponsableSeleccionado);
+                        command.Parameters.AddWithValue("@fechaRec", FechaRecepcion.Value.ToString("yyyy-MM-dd"));
+                        command.Parameters.AddWithValue("@tipo", tipoAsunto);
+                        command.Parameters.AddWithValue("@nombreOfi", NombreOficio.Trim());
+                        command.Parameters.AddWithValue("@fechaOfi", FechaOficio.Value.ToString("yyyy-MM-dd"));
+                        command.Parameters.AddWithValue("@agenda", agenda);
+                        command.Parameters.AddWithValue("@fechaComp", FechaCompromiso.Value.ToString("yyyy-MM-dd"));
+                        command.Parameters.AddWithValue("@inst", instruccion);
+                        command.Parameters.AddWithValue("@obs", observaciones);
+                        command.Parameters.AddWithValue("@sap", Convert.ToInt32(SapSeleccionado.Value));
+                        command.Parameters.AddWithValue("@depto", Convert.ToInt32(DepartamentoSeleccionado.Id));
+                        command.Parameters.AddWithValue("@secSind", Convert.ToInt32(SecSindicalSeleccionada.Value));
+                        command.Parameters.AddWithValue("@org", Convert.ToInt32(OrganismoSeleccionado.Value));
+                        command.Parameters.AddWithValue("@centro", Convert.ToInt32(CentroTrabajoSeleccionado.Id));
+                        command.Parameters.AddWithValue("@descCorta", Convert.ToInt32(DescCortaSeleccionada.Value));
+                        command.Parameters.AddWithValue("@ficha", ResponsableSeleccionado);
 
                         command.ExecuteNonQuery();
                     }

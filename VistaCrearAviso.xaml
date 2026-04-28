@@ -6,8 +6,7 @@
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
-                 Background="Transparent" 
-                 Loaded="UserControl_Loaded">
+                 Background="Transparent">
 
     <Grid>
         <Grid.RowDefinitions>

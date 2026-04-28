@@ -32,6 +32,9 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         private bool _isPanelOrganismosVisible;
         public bool IsPanelOrganismosVisible { get => _isPanelOrganismosVisible; set => SetProperty(ref _isPanelOrganismosVisible, value); }
 
+        private bool _isPanelPapeleraVisible;
+        public bool IsPanelPapeleraVisible { get => _isPanelPapeleraVisible; set => SetProperty(ref _isPanelPapeleraVisible, value); }
+
         public ICommand MostrarMenuCommand { get; }
         public ICommand SalirCommand { get; }
 
@@ -187,6 +190,21 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         public ICommand LimpiarOrganismoCommand { get; }
 
         // ==========================================
+        // MÓDULO: PAPELERA
+        // ==========================================
+        public ObservableCollection<ExpedienteEliminadoModel> ListaEliminados { get; } = new ObservableCollection<ExpedienteEliminadoModel>();
+
+        private string _textoBuscarPapelera;
+        public string TextoBuscarPapelera
+        {
+            get => _textoBuscarPapelera;
+            set { if (SetProperty(ref _textoBuscarPapelera, value)) CargarEliminados(); }
+        }
+
+        public ICommand RestaurarExpedienteCommand { get; }
+        public ICommand CargarEliminadosCommand { get; }
+
+        // ==========================================
         // CONSTRUCTOR
         // ==========================================
         public VentanaAdministradorViewModel()
@@ -203,6 +221,9 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             GuardarOrganismoCommand = new RelayCommand(ExecuteGuardarOrganismo);
             LimpiarOrganismoCommand = new RelayCommand(ExecuteLimpiarOrganismo);
 
+            RestaurarExpedienteCommand = new RelayCommand(ExecuteRestaurarExpediente);
+            CargarEliminadosCommand = new RelayCommand(_ => CargarEliminados());
+
             InicializarDatos();
         }
 
@@ -214,6 +235,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             CargarTablaSaps();
             CargarUsuarios();
             CargarTablaOrganismos();
+            CargarEliminados();
         }
 
         // ==========================================
@@ -225,6 +247,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             IsPanelUsuariosVisible = menu == "Usuarios";
             IsPanelSapVisible = menu == "Departamentos";
             IsPanelOrganismosVisible = menu == "Organismos";
+            IsPanelPapeleraVisible = menu == "Papelera";
         }
 
         private void ExecuteSalir(object parameter)
@@ -304,13 +327,13 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         string query = "SELECT Ficha, nombre, Estrato, tipo, Correo, clave_depto, estatus FROM usuario";
                         if (!string.IsNullOrWhiteSpace(TextoBuscarUsuario))
                         {
-                            query += " WHERE Ficha LIKE $filtro OR nombre LIKE $filtro";
+                            query += " WHERE Ficha LIKE @filtro OR nombre LIKE @filtro";
                         }
 
                         cmd.CommandText = query;
                         if (!string.IsNullOrWhiteSpace(TextoBuscarUsuario))
                         {
-                            cmd.Parameters.AddWithValue("$filtro", "%" + TextoBuscarUsuario + "%");
+                            cmd.Parameters.AddWithValue("@filtro", "%" + TextoBuscarUsuario + "%");
                         }
 
                         using (var reader = cmd.ExecuteReader())
@@ -414,10 +437,10 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             string passwordEncriptada = $"{hash}:{salt}";
 
                             cmd.CommandText = @"INSERT INTO usuario (Ficha, nombre, Correo, Estrato, clave_depto, tipo, contraseña, contador, fecha_ultimaEntrada, estatus) 
-                                                VALUES ($ficha, $nombre, $correo, $estrato, $claveDepto, $tipo, $password, 0, $fechaActual, $estatus)";
+                                                VALUES (@ficha, @nombre, @correo, @estrato, @claveDepto, @tipo, @password, 0, @fechaActual, @estatus)";
 
-                            cmd.Parameters.AddWithValue("$password", passwordEncriptada);
-                            cmd.Parameters.AddWithValue("$fechaActual", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                            cmd.Parameters.AddWithValue("@password", passwordEncriptada);
+                            cmd.Parameters.AddWithValue("@fechaActual", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
                             enviarCorreo = true;
                             esNuevo = true;
@@ -426,9 +449,9 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         {
                             if (string.IsNullOrWhiteSpace(passwordPlana))
                             {
-                                cmd.CommandText = @"UPDATE usuario SET nombre = $nombre, Correo = $correo, 
-                                                    Estrato = $estrato, clave_depto = $claveDepto, tipo = $tipo, estatus = $estatus
-                                                    WHERE Ficha = $ficha";
+                                cmd.CommandText = @"UPDATE usuario SET nombre = @nombre, Correo = @correo, 
+                                                    Estrato = @estrato, clave_depto = @claveDepto, tipo = @tipo, estatus = @estatus
+                                                    WHERE Ficha = @ficha";
                             }
                             else
                             {
@@ -437,24 +460,24 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                                 var (hash, salt) = HashearContrasenaConSalt(passwordPlana);
                                 string passwordEncriptada = $"{hash}:{salt}";
 
-                                cmd.CommandText = @"UPDATE usuario SET nombre = $nombre, Correo = $correo, 
-                                                    Estrato = $estrato, clave_depto = $claveDepto, tipo = $tipo,
-                                                    contraseña = $password, estatus = $estatus 
-                                                    WHERE Ficha = $ficha";
-                                cmd.Parameters.AddWithValue("$password", passwordEncriptada);
+                                cmd.CommandText = @"UPDATE usuario SET nombre = @nombre, Correo = @correo, 
+                                                    Estrato = @estrato, clave_depto = @claveDepto, tipo = @tipo,
+                                                    contraseña = @password, estatus = @estatus 
+                                                    WHERE Ficha = @ficha";
+                                cmd.Parameters.AddWithValue("@password", passwordEncriptada);
 
                                 enviarCorreo = true;
                                 esNuevo = false;
                             }
                         }
 
-                        cmd.Parameters.AddWithValue("$ficha", ficha);
-                        cmd.Parameters.AddWithValue("$nombre", nombre);
-                        cmd.Parameters.AddWithValue("$correo", correo);
-                        cmd.Parameters.AddWithValue("$estrato", EstratoSeleccionado);
-                        cmd.Parameters.AddWithValue("$claveDepto", claveDepto);
-                        cmd.Parameters.AddWithValue("$tipo", RolSeleccionado);
-                        cmd.Parameters.AddWithValue("$estatus", estatus);
+                        cmd.Parameters.AddWithValue("@ficha", ficha);
+                        cmd.Parameters.AddWithValue("@nombre", nombre);
+                        cmd.Parameters.AddWithValue("@correo", correo);
+                        cmd.Parameters.AddWithValue("@estrato", EstratoSeleccionado);
+                        cmd.Parameters.AddWithValue("@claveDepto", Convert.ToInt32(claveDepto));
+                        cmd.Parameters.AddWithValue("@tipo", RolSeleccionado);
+                        cmd.Parameters.AddWithValue("@estatus", estatus);
 
                         cmd.ExecuteNonQuery();
                     }
@@ -491,13 +514,13 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         string query = "SELECT clave_depto, descripcion FROM Dep_personal";
                         if (!string.IsNullOrWhiteSpace(TextoBuscarSap))
                         {
-                            query += " WHERE clave_depto LIKE $filtro OR descripcion LIKE $filtro";
+                            query += " WHERE CAST(clave_depto AS TEXT) LIKE @filtro OR descripcion LIKE @filtro";
                         }
 
                         cmd.CommandText = query;
                         if (!string.IsNullOrWhiteSpace(TextoBuscarSap))
                         {
-                            cmd.Parameters.AddWithValue("$filtro", "%" + TextoBuscarSap + "%");
+                            cmd.Parameters.AddWithValue("@filtro", "%" + TextoBuscarSap + "%");
                         }
 
                         using (var reader = cmd.ExecuteReader())
@@ -554,15 +577,15 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         if (IsClaveSapEnabled)
                         {
-                            cmd.CommandText = "INSERT INTO Dep_personal (clave_depto, descripcion) VALUES ($clave, $descripcion)";
+                            cmd.CommandText = "INSERT INTO Dep_personal (clave_depto, descripcion) VALUES (@clave, @descripcion)";
                         }
                         else
                         {
-                            cmd.CommandText = "UPDATE Dep_personal SET descripcion = $descripcion WHERE clave_depto = $clave";
+                            cmd.CommandText = "UPDATE Dep_personal SET descripcion = @descripcion WHERE clave_depto = @clave";
                         }
 
-                        cmd.Parameters.AddWithValue("$clave", ClaveSap.Trim());
-                        cmd.Parameters.AddWithValue("$descripcion", DescripcionSap.Trim());
+                        cmd.Parameters.AddWithValue("@clave", Convert.ToInt32(ClaveSap.Trim()));
+                        cmd.Parameters.AddWithValue("@descripcion", DescripcionSap.Trim());
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -594,13 +617,13 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         string query = "SELECT id_organismo, Organismo, Descripcion FROM Organismos";
                         if (!string.IsNullOrWhiteSpace(TextoBuscarOrganismo))
                         {
-                            query += " WHERE Organismo LIKE $filtro OR Descripcion LIKE $filtro";
+                            query += " WHERE Organismo LIKE @filtro OR Descripcion LIKE @filtro";
                         }
 
                         cmd.CommandText = query;
                         if (!string.IsNullOrWhiteSpace(TextoBuscarOrganismo))
                         {
-                            cmd.Parameters.AddWithValue("$filtro", "%" + TextoBuscarOrganismo + "%");
+                            cmd.Parameters.AddWithValue("@filtro", "%" + TextoBuscarOrganismo + "%");
                         }
 
                         using (var reader = cmd.ExecuteReader())
@@ -658,16 +681,16 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         if (string.IsNullOrEmpty(IdOrganismo))
                         {
-                            cmd.CommandText = "INSERT INTO Organismos (Organismo, Descripcion) VALUES ($clave, $descripcion)";
+                            cmd.CommandText = "INSERT INTO Organismos (Organismo, Descripcion) VALUES (@clave, @descripcion)";
                         }
                         else
                         {
-                            cmd.CommandText = "UPDATE Organismos SET Organismo = $clave, Descripcion = $descripcion WHERE id_organismo = $id";
-                            cmd.Parameters.AddWithValue("$id", Convert.ToInt32(IdOrganismo));
+                            cmd.CommandText = "UPDATE Organismos SET Organismo = @clave, Descripcion = @descripcion WHERE id_organismo = @id";
+                            cmd.Parameters.AddWithValue("@id", Convert.ToInt32(IdOrganismo));
                         }
 
-                        cmd.Parameters.AddWithValue("$clave", ClaveOrganismo.Trim());
-                        cmd.Parameters.AddWithValue("$descripcion", DescripcionOrganismo.Trim());
+                        cmd.Parameters.AddWithValue("@clave", ClaveOrganismo.Trim());
+                        cmd.Parameters.AddWithValue("@descripcion", DescripcionOrganismo.Trim());
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -721,5 +744,121 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                 // Ignorar si falla el SMTP local
             }
         }
+
+        // ==========================================
+        // LÓGICA DE PAPELERA
+        // ==========================================
+        private void CargarEliminados()
+        {
+            ListaEliminados.Clear();
+            try
+            {
+                using (var conn = DatabaseConnection.GetConnection())
+                {
+                    if (conn == null) return;
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        string query = @"
+                            SELECT a.id_asunto, a.Nombre_oficio,
+                                   (SELECT s.Descripcion FROM Seguimiento s 
+                                    WHERE s.num_Asunto = a.id_asunto AND s.Descripcion LIKE 'EXPEDIENTE ELIMINADO%'
+                                    ORDER BY s.Id_Seguimiento DESC LIMIT 1) as LogInfo,
+                                   (SELECT s.fecha_Seguimiento FROM Seguimiento s 
+                                    WHERE s.num_Asunto = a.id_asunto AND s.Descripcion LIKE 'EXPEDIENTE ELIMINADO%'
+                                    ORDER BY s.Id_Seguimiento DESC LIMIT 1) as FechaLog
+                            FROM Asuntos a
+                            WHERE a.Eliminado = 0";
+
+                        if (!string.IsNullOrWhiteSpace(TextoBuscarPapelera))
+                        {
+                            query += " AND (a.id_asunto LIKE @filtro OR a.Nombre_oficio LIKE @filtro OR dp.descripcion LIKE @filtro)";
+                            cmd.Parameters.AddWithValue("@filtro", "%" + TextoBuscarPapelera + "%");
+                        }
+
+                        cmd.CommandText = query;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string logFull = reader["LogInfo"]?.ToString() ?? "";
+                                string motivo = "No especificado";
+                                string usuario = "Sistema";
+
+                                if (!string.IsNullOrEmpty(logFull))
+                                {
+                                    try
+                                    {
+                                        // Extraer Motivo
+                                        if (logFull.Contains("Motivo: ") && logFull.Contains(" (Eliminado por:"))
+                                        {
+                                            int start = logFull.IndexOf("Motivo: ") + 8;
+                                            int end = logFull.IndexOf(" (Eliminado por:");
+                                            motivo = logFull.Substring(start, end - start);
+                                            
+                                            // Extraer Usuario
+                                            int startU = logFull.IndexOf("(Eliminado por: ") + 16;
+                                            int endU = logFull.LastIndexOf(")");
+                                            usuario = logFull.Substring(startU, endU - startU);
+                                        }
+                                    }
+                                    catch { /* Fallback a valores por defecto */ }
+                                }
+
+                                ListaEliminados.Add(new ExpedienteEliminadoModel
+                                {
+                                    IdAsunto = Convert.ToInt32(reader["id_asunto"]),
+                                    AsuntoNombre = reader["Nombre_oficio"]?.ToString() ?? "Sin Asunto",
+                                    FechaEliminacion = reader["FechaLog"]?.ToString() ?? "N/A",
+                                    MotivoEliminacion = motivo,
+                                    UsuarioElimino = usuario
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarMensajeAction?.Invoke("Error en Papelera", ex.Message);
+            }
+        }
+
+        private void ExecuteRestaurarExpediente(object parameter)
+        {
+            var exp = parameter as ExpedienteEliminadoModel;
+            if (exp == null) return;
+
+            if (System.Windows.MessageBox.Show($"¿Deseas restaurar el expediente Folio {exp.IdAsunto}?", "Confirmar Restauración", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes)
+            {
+                try
+                {
+                    using (var conn = DatabaseConnection.GetConnection())
+                    {
+                        if (conn == null) return;
+                        using (var cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = "UPDATE Asuntos SET Eliminado = 1 WHERE id_asunto = @id";
+                            cmd.Parameters.AddWithValue("@id", exp.IdAsunto);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    MostrarMensajeAction?.Invoke("Éxito", "Expediente restaurado correctamente.");
+                    CargarEliminados();
+                }
+                catch (Exception ex)
+                {
+                    MostrarMensajeAction?.Invoke("Error al restaurar", ex.Message);
+                }
+            }
+        }
+    }
+
+    public class ExpedienteEliminadoModel
+    {
+        public int IdAsunto { get; set; }
+        public string AsuntoNombre { get; set; }
+        public string FechaEliminacion { get; set; }
+        public string MotivoEliminacion { get; set; }
+        public string UsuarioElimino { get; set; }
     }
 }

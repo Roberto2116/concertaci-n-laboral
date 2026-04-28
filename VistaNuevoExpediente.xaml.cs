@@ -10,17 +10,7 @@ namespace Proyecto_GRRLN_expediente
             try
             {
                 InitializeComponent();
-            }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show("Error en InitializeComponent: " + ex.ToString());
-            }
-        }
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            try
-            {
+                
                 var viewModel = new VistaNuevoExpedienteViewModel();
 
                 viewModel.AbrirConsultaAction = () =>
@@ -38,7 +28,7 @@ namespace Proyecto_GRRLN_expediente
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show("Error en UserControl_Loaded: " + ex.ToString());
+                MessageBox.Show("Error al inicializar la ventana: " + ex.ToString());
             }
         }
     }

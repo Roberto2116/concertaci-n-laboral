@@ -56,6 +56,12 @@
                                Appearance="Light" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
                                Margin="0,0,0,5" Height="40" FontSize="14" Command="{Binding MostrarMenuCommand}" CommandParameter="Organismos"/>
 
+                    <TextBlock Text="SEGURIDAD Y RECUPERACIÓN" FontSize="12" FontWeight="Bold" Foreground="#94A3B8" Margin="5,20,0,10"/>
+
+                    <ui:Button x:Name="BtnMenuPapelera" Content="Expedientes Eliminados" Icon="DeleteDismiss24" 
+                               Appearance="Light" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
+                               Margin="0,0,0,5" Height="40" FontSize="14" Command="{Binding MostrarMenuCommand}" CommandParameter="Papelera"/>
+
                     <ui:Button x:Name="BtnSalir" Content="Cerrar Panel" Icon="SignOut24" 
                                Appearance="Danger" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
                                Margin="0,40,0,0" Height="40" FontSize="14" Command="{Binding SalirCommand}"/>
@@ -283,6 +289,56 @@
                             </ScrollViewer>
                         </Border>
                     </Grid>
+                </Grid>
+                
+                <!-- MODULO: PAPELERA (EXPEDIENTES ELIMINADOS) -->
+                <Grid x:Name="PanelPapelera" Visibility="{Binding IsPanelPapeleraVisible, Converter={StaticResource BoolToVis}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                        <TextBlock Text="Papelera de Reciclaje" FontSize="28" FontWeight="Black" Foreground="#C0392B"/>
+                        <TextBlock Text="Listado de expedientes con borrado lógico. Aquí puedes recuperarlos si fue un error." FontSize="14" Foreground="#64748B"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#E2E8F0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                                <ui:TextBox PlaceholderText="Filtrar eliminados..." Width="300" Icon="Search24" Margin="0,0,15,0" 
+                                            Text="{Binding TextoBuscarPapelera, UpdateSourceTrigger=PropertyChanged}"/>
+                                <ui:Button Content="Actualizar Lista" Icon="ArrowClockwise24" Command="{Binding CargarEliminadosCommand}"/>
+                            </StackPanel>
+
+                            <DataGrid Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Background="White" 
+                                      BorderThickness="1" BorderBrush="#CBD5E1" RowHeight="50" 
+                                      ItemsSource="{Binding ListaEliminados}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="FOLIO" Binding="{Binding IdAsunto}" Width="70"/>
+                                    <DataGridTextColumn Header="ASUNTO" Binding="{Binding AsuntoNombre}" Width="150"/>
+                                    <DataGridTextColumn Header="FECHA DE BAJA" Binding="{Binding FechaEliminacion}" Width="130"/>
+                                    <DataGridTextColumn Header="MOTIVO DE BAJA" Binding="{Binding MotivoEliminacion}" Width="*"/>
+                                    <DataGridTextColumn Header="ELIMINADO POR" Binding="{Binding UsuarioElimino}" Width="120"/>
+                                    <DataGridTemplateColumn Header="ACCIONES" Width="100">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ui:Button Content="Restaurar" Icon="ArrowReset24" 
+                                                           Appearance="Primary" Padding="5,2" Height="30"
+                                                           Command="{Binding DataContext.RestaurarExpedienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                           CommandParameter="{Binding}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
                 </Grid>
 
             </Grid>

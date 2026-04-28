@@ -4,17 +4,22 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.Data.Sqlite;
+using System.Windows.Threading;
+using Npgsql;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 using Proyecto_GRRLN_expediente.db;
 
 namespace Proyecto_GRRLN_expediente.ViewModels
 {
-    public class VistaConsultaGeneralViewModel : ViewModelBase
+    public class VistaConsultaGeneralViewModel : ViewModelBase, IDisposable
     {
+        private DispatcherTimer _timerRefresco;
         public Action CerrarVentanaAction { get; set; }
         public Action<int> AbrirEdicionAction { get; set; }
         public Action<int, int> AbrirAvanceAction { get; set; }
+
+        private bool _isEdicionPermitida;
+        public bool IsEdicionPermitida { get => _isEdicionPermitida; set => SetProperty(ref _isEdicionPermitida, value); }
 
         private string _textoBusqueda = "";
         public string TextoBusqueda
@@ -38,10 +43,32 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         public VistaConsultaGeneralViewModel()
         {
             RegresarCommand = new RelayCommand(ExecuteRegresar);
-            EditarExpedienteCommand = new RelayCommand(ExecuteEditarExpediente);
-            ModificarAvanceCommand = new RelayCommand(ExecuteModificarAvance);
+            EditarExpedienteCommand = new RelayCommand(ExecuteEditarExpediente, _ => IsEdicionPermitida);
+            ModificarAvanceCommand = new RelayCommand(ExecuteModificarAvance, _ => IsEdicionPermitida);
+
+            string estrato = SesionGlobal.Estrato?.ToUpper() ?? "";
+            IsEdicionPermitida = estrato != "GERENTE";
 
             CargarDatos();
+            IniciarTemporizador();
+        }
+
+        private void IniciarTemporizador()
+        {
+            _timerRefresco = new DispatcherTimer();
+            _timerRefresco.Interval = TimeSpan.FromMinutes(2);
+            _timerRefresco.Tick += (s, e) => {
+                if (string.IsNullOrWhiteSpace(TextoBusqueda)) 
+                {
+                    CargarDatos();
+                }
+            };
+            _timerRefresco.Start();
+        }
+
+        public void Dispose()
+        {
+            _timerRefresco?.Stop();
         }
 
         public void CargarDatos()
@@ -71,18 +98,18 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             LEFT JOIN Subgerencia s ON dp.clave_subgerencia = s.Clave_subgerencia
                             LEFT JOIN AS_CatGerencia g ON s.clave_gerencia = g.Clave_gerencia
                             LEFT JOIN Cat_SAP cs ON a.id_sap = cs.Id_SAP
-                            WHERE 1=1 ";
+                            WHERE a.Eliminado = 1 ";
 
                         if (!string.IsNullOrWhiteSpace(TextoBusqueda))
                         {
                             query += @" AND (
-                                        a.Nombre_oficio LIKE $filtro OR 
-                                        CAST(a.id_asunto AS TEXT) LIKE $filtro OR
-                                        c.tipo_descripcion LIKE $filtro OR
-                                        cs.Descripcion_Sap LIKE $filtro OR
-                                        dp.descripcion LIKE $filtro
+                                        a.Nombre_oficio LIKE @filtro OR 
+                                        CAST(a.id_asunto AS TEXT) LIKE @filtro OR
+                                        c.tipo_descripcion LIKE @filtro OR
+                                        cs.Descripcion_Sap LIKE @filtro OR
+                                        dp.descripcion LIKE @filtro
                                        )";
-                            command.Parameters.AddWithValue("$filtro", "%" + TextoBusqueda.Trim() + "%");
+                            command.Parameters.AddWithValue("@filtro", "%" + TextoBusqueda.Trim() + "%");
                         }
 
                         query += " ORDER BY a.id_asunto DESC";
@@ -94,14 +121,14 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             {
                                 ListaAsuntos.Add(new AsuntoGridModel
                                 {
-                                    Id = reader.GetInt32(0),
-                                    Asunto = reader.IsDBNull(1) ? "SIN NOMBRE" : reader.GetString(1),
-                                    FechaLimite = reader.IsDBNull(2) ? "" : reader.GetString(2),
-                                    Avance = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
-                                    DescripcionCortaTexto = reader.IsDBNull(4) ? "Sin descripción" : reader.GetString(4),
-                                    GerenciaTexto = reader.IsDBNull(5) ? "Sin gerencia" : reader.GetString(5),
-                                    Sap = reader.IsDBNull(6) ? "Sin SAP" : reader.GetString(6),
-                                    Departamento = reader.IsDBNull(7) ? "Sin Depto" : reader.GetString(7)
+                                    Id = Convert.ToInt32(reader[0]),
+                                    Asunto = reader.IsDBNull(1) ? "SIN NOMBRE" : reader[1].ToString(),
+                                    FechaLimite = reader.IsDBNull(2) ? "" : reader[2].ToString(),
+                                    Avance = reader.IsDBNull(3) ? 0 : Convert.ToInt32(reader[3]),
+                                    DescripcionCortaTexto = reader.IsDBNull(4) ? "Sin descripción" : reader[4].ToString(),
+                                    GerenciaTexto = reader.IsDBNull(5) ? "Sin gerencia" : reader[5].ToString(),
+                                    Sap = reader.IsDBNull(6) ? "Sin SAP" : reader[6].ToString(),
+                                    Departamento = reader.IsDBNull(7) ? "Sin Depto" : reader[7].ToString()
                                 });
                             }
                         }

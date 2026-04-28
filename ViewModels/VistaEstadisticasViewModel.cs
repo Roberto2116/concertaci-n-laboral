@@ -134,23 +134,35 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         private void CargarFiltroSAPs()
         {
             ListaSaps.Clear();
-            ListaSaps.Add("TODOS");
-            try
+            string estrato = SesionGlobal.Estrato?.ToUpper() ?? "";
+
+            if (estrato == "GERENTE" || estrato == "JEFE" || estrato == "ADMINISTRADOR")
             {
-                using (var conn = DatabaseConnection.GetConnection())
+                ListaSaps.Add("TODOS");
+                try
                 {
-                    if (conn == null) return;
-                    var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT DISTINCT Descripcion_Sap FROM Cat_SAP WHERE Descripcion_Sap IS NOT NULL";
-                    using (var reader = cmd.ExecuteReader())
+                    using (var conn = DatabaseConnection.GetConnection())
                     {
-                        while (reader.Read()) ListaSaps.Add(reader.GetString(0));
+                        if (conn == null) return;
+                        var cmd = conn.CreateCommand();
+                        cmd.CommandText = "SELECT DISTINCT Descripcion_Sap FROM Cat_SAP WHERE Descripcion_Sap IS NOT NULL";
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read()) ListaSaps.Add(reader[0].ToString());
+                        }
                     }
                 }
+                catch (Exception) { }
+                
+                _sapSeleccionado = "TODOS";
             }
-            catch (Exception) { }
-            
-            _sapSeleccionado = "TODOS";
+            else
+            {
+                // Usuario de captura, solo ve su propio rendimiento
+                ListaSaps.Add("MIS ASUNTOS");
+                _sapSeleccionado = "MIS ASUNTOS";
+            }
+
             OnPropertyChanged(nameof(SapSeleccionado));
         }
 
@@ -184,32 +196,37 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         FROM Asuntos a
                         LEFT JOIN Cat_SAP cs ON a.id_sap = cs.Id_SAP
                         LEFT JOIN Descripcion_corta dc ON a.id_descripcionCorta = dc.id_descripcionCorta 
-                        WHERE a.Fecha_recepcion >= $inicio AND a.Fecha_recepcion <= $fin ";
+                        WHERE a.Eliminado = 1 AND a.Fecha_recepcion >= @inicio AND a.Fecha_recepcion <= @fin ";
 
-                    if (filtroSap != "TODOS")
+                    if (filtroSap == "MIS ASUNTOS")
                     {
-                        queryAsuntos += " AND cs.Descripcion_Sap = $sapFiltro";
-                        cmd1.Parameters.AddWithValue("$sapFiltro", filtroSap);
+                        queryAsuntos += " AND a.Ficha = @miFicha";
+                        cmd1.Parameters.AddWithValue("@miFicha", SesionGlobal.Ficha ?? "");
+                    }
+                    else if (filtroSap != "TODOS")
+                    {
+                        queryAsuntos += " AND cs.Descripcion_Sap = @sapFiltro";
+                        cmd1.Parameters.AddWithValue("@sapFiltro", filtroSap);
                     }
 
                     cmd1.CommandText = queryAsuntos;
-                    cmd1.Parameters.AddWithValue("$inicio", inicio.ToString("yyyy-MM-dd"));
-                    cmd1.Parameters.AddWithValue("$fin", fin.ToString("yyyy-MM-dd"));
+                    cmd1.Parameters.AddWithValue("@inicio", inicio.ToString("yyyy-MM-dd"));
+                    cmd1.Parameters.AddWithValue("@fin", fin.ToString("yyyy-MM-dd"));
 
                     using (var reader = cmd1.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             total++;
-                            int id = reader.GetInt32(0);
+                            int id = Convert.ToInt32(reader[0]);
 
                             string descripcion = reader.IsDBNull(1) ? "Sin descripción" : reader.GetValue(1).ToString();
                             if (string.IsNullOrWhiteSpace(descripcion)) descripcion = "Sin descripción";
 
-                            int avance = reader.IsDBNull(2) ? 0 : reader.GetInt32(2);
-                            string fechaComp = reader.IsDBNull(3) ? "" : reader.GetString(3);
-                            string sap = reader.IsDBNull(4) ? "SIN SAP" : reader.GetString(4);
-                            string fechaRecStr = reader.IsDBNull(5) ? "" : reader.GetString(5);
+                            int avance = reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader[2]);
+                            string fechaComp = reader.IsDBNull(3) ? "" : reader[3].ToString();
+                            string sap = reader.IsDBNull(4) ? "SIN SAP" : reader[4].ToString();
+                            string fechaRecStr = reader.IsDBNull(5) ? "" : reader[5].ToString();
 
                             sumaAvance += avance;
                             bool estaVencido = false;
@@ -242,17 +259,22 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         SELECT 
                             u.nombre AS NombreUsuario,
                             SUM(CASE WHEN a.Porcentaje_avance >= 100 THEN 1 ELSE 0 END) AS Completados,
-                            SUM(CASE WHEN a.Porcentaje_avance < 100 AND (a.Fecha_Compromiso >= date('now') OR a.Fecha_Compromiso IS NULL OR a.Fecha_Compromiso = '') THEN 1 ELSE 0 END) AS EnProceso,
-                            SUM(CASE WHEN a.Porcentaje_avance < 100 AND a.Fecha_Compromiso < date('now') AND a.Fecha_Compromiso != '' THEN 1 ELSE 0 END) AS Vencidos
+                            SUM(CASE WHEN a.Porcentaje_avance < 100 AND (a.Fecha_Compromiso >= TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD') OR a.Fecha_Compromiso IS NULL OR a.Fecha_Compromiso = '') THEN 1 ELSE 0 END) AS EnProceso,
+                            SUM(CASE WHEN a.Porcentaje_avance < 100 AND a.Fecha_Compromiso < TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD') AND a.Fecha_Compromiso != '' THEN 1 ELSE 0 END) AS Vencidos
                         FROM Asuntos a
                         INNER JOIN usuario u ON a.Ficha = u.Ficha 
                         LEFT JOIN Cat_SAP cs ON a.id_sap = cs.Id_SAP
-                        WHERE 1=1 ";
+                        WHERE a.Eliminado = 1 ";
 
-                    if (filtroSap != "TODOS")
+                    if (filtroSap == "MIS ASUNTOS")
                     {
-                        queryRendimiento += " AND cs.Descripcion_Sap = $sapFiltro ";
-                        cmdUsuarios.Parameters.AddWithValue("$sapFiltro", filtroSap);
+                        queryRendimiento += " AND a.Ficha = @miFicha ";
+                        cmdUsuarios.Parameters.AddWithValue("@miFicha", SesionGlobal.Ficha ?? "");
+                    }
+                    else if (filtroSap != "TODOS")
+                    {
+                        queryRendimiento += " AND cs.Descripcion_Sap = @sapFiltro ";
+                        cmdUsuarios.Parameters.AddWithValue("@sapFiltro", filtroSap);
                     }
 
                     queryRendimiento += " GROUP BY u.nombre ORDER BY u.nombre ASC";
@@ -324,14 +346,22 @@ namespace Proyecto_GRRLN_expediente.ViewModels
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"
+                        string queryRanking = @"
                             SELECT u.Ficha, u.nombre, u.tipo, u.contador, 
                                    COUNT(a.Id_asunto) as AsuntosAsignados
                             FROM usuario u
-                            LEFT JOIN Asuntos a ON u.Ficha = a.Ficha
-                            WHERE u.estatus = 1
-                            GROUP BY u.Ficha, u.nombre, u.tipo, u.contador
-                            ORDER BY u.contador DESC";
+                            LEFT JOIN Asuntos a ON u.Ficha = a.Ficha AND a.Eliminado = 1
+                            WHERE u.estatus = 1";
+
+                        string estrato = SesionGlobal.Estrato?.ToUpper() ?? "";
+                        if (estrato != "GERENTE" && estrato != "JEFE" && estrato != "ADMINISTRADOR")
+                        {
+                            queryRanking += " AND u.Ficha = @miFicha ";
+                            cmd.Parameters.AddWithValue("@miFicha", SesionGlobal.Ficha ?? "");
+                        }
+
+                        queryRanking += " GROUP BY u.Ficha, u.nombre, u.tipo, u.contador ORDER BY u.contador DESC";
+                        cmd.CommandText = queryRanking;
 
                         using (var reader = cmd.ExecuteReader())
                         {

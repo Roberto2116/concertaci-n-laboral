@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 using Proyecto_GRRLN_expediente.db;
 
@@ -10,6 +10,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
     public class VentanaActualizarAvanceViewModel : ViewModelBase
     {
         private int _idAsunto;
+        private int _avanceOriginal;
 
         public Action<bool> CerrarVentanaAction { get; set; }
 
@@ -63,6 +64,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         public VentanaActualizarAvanceViewModel(int idAsunto, int avanceActual)
         {
             _idAsunto = idAsunto;
+            _avanceOriginal = avanceActual;
             TituloExpediente = $"Expediente #{_idAsunto}";
             
             // Al asignar Avance, se asignará automáticamente AvanceTexto
@@ -98,15 +100,20 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         command.CommandText = @"
                             UPDATE Asuntos 
-                            SET Porcentaje_avance = $avance, 
-                                Id_estatus = $idEst,
-                                Fecha_atencion = $fechaAte
-                            WHERE Id_asunto = $id";
+                            SET Porcentaje_avance = @avance, 
+                                Id_estatus = @idEst,
+                                Fecha_atencion = @fechaAte
+                            WHERE Id_asunto = @id;
 
-                        command.Parameters.AddWithValue("$avance", Avance);
-                        command.Parameters.AddWithValue("$idEst", nuevoIdEstatus);
-                        command.Parameters.AddWithValue("$fechaAte", fechaAtencionActual);
-                        command.Parameters.AddWithValue("$id", _idAsunto);
+                            INSERT INTO Seguimiento (num_Asunto, Descripcion, fecha_Seguimiento)
+                            VALUES (@id, @descSeguimiento, @fechaAte);";
+
+                        command.Parameters.AddWithValue("@avance", Avance);
+                        command.Parameters.AddWithValue("@idEst", nuevoIdEstatus);
+                        command.Parameters.AddWithValue("@fechaAte", fechaAtencionActual);
+                        command.Parameters.AddWithValue("@id", Convert.ToInt32(_idAsunto));
+                        string nombreUsuario = SesionGlobal.Nombre ?? "Usuario";
+                        command.Parameters.AddWithValue("@descSeguimiento", $"Avance actualizado del {_avanceOriginal}% al {Avance}% por {nombreUsuario}.");
 
                         command.ExecuteNonQuery();
                     }

@@ -64,6 +64,7 @@
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.EditarExpedienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding Id}"
+                                            IsEnabled="{Binding DataContext.IsEdicionPermitida, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             Cursor="Hand"
                                             HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"
                                             ToolTip="Haz clic para editar este asunto">

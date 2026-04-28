@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.db;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 
@@ -73,44 +73,44 @@ namespace Proyecto_GRRLN_expediente.ViewModels
 
             try
             {
-                SqliteConnection conn = DatabaseConnection.GetConnection();
-                if (conn == null) return;
-
-                if (conn.State != System.Data.ConnectionState.Open) conn.Open();
-
-                using (var command = conn.CreateCommand())
+                using (NpgsqlConnection conn = DatabaseConnection.GetConnection())
                 {
-                    command.CommandText = "SELECT nombre, tipo, clave_depto, contraseña, estatus, contador FROM usuario WHERE Ficha = $ficha";
-                    command.Parameters.AddWithValue("$ficha", usuario);
+                    if (conn == null) return;
 
-                    using (var reader = command.ExecuteReader())
+                    using (var command = conn.CreateCommand())
                     {
-                        if (reader.Read())
+                        command.CommandText = "SELECT nombre, tipo, clave_depto, contraseña, estatus, contador, Estrato FROM usuario WHERE Ficha = @ficha";
+                        command.Parameters.AddWithValue("@ficha", usuario);
+
+                        using (var reader = command.ExecuteReader())
                         {
-                            string passwordBD = reader["contraseña"] != DBNull.Value ? reader["contraseña"].ToString() : "";
-                            int estatusBD = reader["estatus"] != DBNull.Value ? Convert.ToInt32(reader["estatus"]) : 1;
-                            contadorActual = reader["contador"] != DBNull.Value ? Convert.ToInt32(reader["contador"]) : 0;
-
-                            if (estatusBD == 0)
+                            if (reader.Read())
                             {
-                                MensajeError = "Tu cuenta ha sido desactivada. Contacta al administrador.";
-                                return;
-                            }
+                                string passwordBD = reader["contraseña"] != DBNull.Value ? reader["contraseña"].ToString() : "";
+                                int estatusBD = reader["estatus"] != DBNull.Value ? Convert.ToInt32(reader["estatus"]) : 1;
+                                contadorActual = reader["contador"] != DBNull.Value ? Convert.ToInt32(reader["contador"]) : 0;
 
-                            if (!VerificarContrasenaSegura(password, passwordBD))
+                                if (estatusBD == 0)
+                                {
+                                    MensajeError = "Tu cuenta ha sido desactivada. Contacta al administrador.";
+                                    return;
+                                }
+
+                                if (!VerificarContrasenaSegura(password, passwordBD))
                             {
                                 MensajeError = "Ficha o contraseña incorrectos.";
                                 return;
                             }
 
                             loginExitoso = true;
-                            nombreUsuarioLogueado = reader.GetString(0);
-                            tipoUsuarioLogueado = reader.GetString(1);
+                            nombreUsuarioLogueado = reader[0].ToString();
+                            tipoUsuarioLogueado = reader[1].ToString();
 
                             SesionGlobal.Ficha = usuario;
                             SesionGlobal.Nombre = nombreUsuarioLogueado;
                             SesionGlobal.TipoRol = tipoUsuarioLogueado;
-                            SesionGlobal.ClaveDepto = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                            SesionGlobal.Estrato = reader["Estrato"]?.ToString() ?? "";
+                            SesionGlobal.ClaveDepto = reader.IsDBNull(2) ? "" : reader[2].ToString();
 
                             SesionSistema.UsuarioLogueado = new Usuario
                             {
@@ -118,6 +118,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                                 Nombre = nombreUsuarioLogueado,
                                 Contrasena = passwordBD,
                                 Tipo = tipoUsuarioLogueado,
+                                Estrato = SesionGlobal.Estrato,
                                 ClaveDepto = reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader.GetValue(2))
                             };
                         }
@@ -131,25 +132,26 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     if (loginExitoso)
                     {
                         string fechaAhora = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        command.CommandText = "UPDATE usuario SET fecha_ultimaEntrada = $fecha, contador = contador + 1 WHERE Ficha = $ficha";
+                        command.CommandText = "UPDATE usuario SET fecha_ultimaEntrada = @fecha, contador = contador + 1 WHERE Ficha = @ficha";
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("$fecha", fechaAhora);
-                        command.Parameters.AddWithValue("$ficha", usuario);
+                        command.Parameters.AddWithValue("@fecha", fechaAhora);
+                        command.Parameters.AddWithValue("@ficha", usuario);
                         command.ExecuteNonQuery();
 
                         command.CommandText = @"INSERT INTO Bitacora_Sesiones (Ficha_Usuario, Fecha_Entrada) 
-                                                VALUES ($ficha, $fechaEntrada);
-                                                SELECT last_insert_rowid();";
+                                                VALUES (@ficha, @fechaEntrada)
+                                                RETURNING Id_Sesion;";
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("$ficha", usuario);
-                        command.Parameters.AddWithValue("$fechaEntrada", fechaAhora);
+                        command.Parameters.AddWithValue("@ficha", usuario);
+                        command.Parameters.AddWithValue("@fechaEntrada", fechaAhora);
 
-                        long idSesionGenerado = (long)command.ExecuteScalar();
+                        long idSesionGenerado = Convert.ToInt64(command.ExecuteScalar());
                         SesionGlobal.IdSesionActual = idSesionGenerado;
                     }
                 }
             }
-            catch (Exception ex)
+        }
+        catch (Exception ex)
             {
                 MensajeError = $"Error de base de datos:\n{ex.Message}";
                 return;

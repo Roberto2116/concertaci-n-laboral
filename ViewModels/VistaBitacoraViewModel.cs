@@ -2,7 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 using Proyecto_GRRLN_expediente.db;
 
@@ -56,8 +56,8 @@ namespace Proyecto_GRRLN_expediente.ViewModels
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "SELECT id_seguimiento, fecha_Seguimiento, Descripcion FROM Seguimiento WHERE num_Asunto = $id ORDER BY fecha_Seguimiento DESC";
-                        cmd.Parameters.AddWithValue("$id", _idAsunto);
+                        cmd.CommandText = "SELECT id_seguimiento, fecha_Seguimiento, Descripcion FROM Seguimiento WHERE num_Asunto = @id ORDER BY fecha_Seguimiento DESC";
+                        cmd.Parameters.AddWithValue("@id", Convert.ToInt32(_idAsunto));
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -65,9 +65,9 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                             {
                                 ListaHistorial.Add(new BitacoraModel
                                 {
-                                    IdBitacora = reader.GetInt32(0).ToString(),
-                                    Fecha = reader.GetString(1),
-                                    Descripcion = reader.GetString(2)
+                                    IdBitacora = Convert.ToInt32(reader[0]).ToString(),
+                                    Fecha = reader[1].ToString(),
+                                    Descripcion = reader[2].ToString()
                                 });
                             }
                         }
@@ -98,16 +98,16 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         cmd.CommandText = @"
                             INSERT INTO Seguimiento (num_Asunto, fecha_Seguimiento, Descripcion) 
-                            VALUES ($id, $fechaHora, $descripcion);
+                            VALUES (@id, @fechaHora, @descripcion);
 
                             UPDATE Asuntos 
-                            SET Fecha_atencion = $fechaHoy 
-                            WHERE Id_asunto = $id;";
+                            SET Fecha_atencion = @fechaHoy 
+                            WHERE Id_asunto = @id;";
 
-                        cmd.Parameters.AddWithValue("$id", _idAsunto);
-                        cmd.Parameters.AddWithValue("$fechaHora", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")); 
-                        cmd.Parameters.AddWithValue("$fechaHoy", DateTime.Now.ToString("yyyy-MM-dd")); 
-                        cmd.Parameters.AddWithValue("$descripcion", NuevaBitacora.Trim());
+                        cmd.Parameters.AddWithValue("@id", Convert.ToInt32(_idAsunto));
+                        cmd.Parameters.AddWithValue("@fechaHora", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")); 
+                        cmd.Parameters.AddWithValue("@fechaHoy", DateTime.Now.ToString("yyyy-MM-dd")); 
+                        cmd.Parameters.AddWithValue("@descripcion", NuevaBitacora.Trim());
 
                         cmd.ExecuteNonQuery();
                     }

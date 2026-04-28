@@ -4,15 +4,17 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using System.Globalization;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 using Proyecto_GRRLN_expediente.db;
 
 namespace Proyecto_GRRLN_expediente.ViewModels
 {
-    public class VistaConsultasViewModel : ViewModelBase
+    public class VistaConsultasViewModel : ViewModelBase, IDisposable
     {
+        private DispatcherTimer _timerRefresco;
         public Action CerrarVentanaAction { get; set; }
         public Action<int> AbrirEdicionAction { get; set; }
 
@@ -61,6 +63,26 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             AbrirExpedienteCommand = new RelayCommand(ExecuteAbrirExpediente);
 
             CargarCatalogosFiltros();
+            ExecuteBuscar(null);
+            IniciarTemporizador();
+        }
+
+        private void IniciarTemporizador()
+        {
+            _timerRefresco = new DispatcherTimer();
+            _timerRefresco.Interval = TimeSpan.FromMinutes(2);
+            _timerRefresco.Tick += (s, e) => {
+                if (string.IsNullOrWhiteSpace(TextoBusqueda) && EstadoSeleccionado == -1 && SedeSeleccionada == -1)
+                {
+                    ExecuteBuscar(null);
+                }
+            };
+            _timerRefresco.Start();
+        }
+
+        public void Dispose()
+        {
+            _timerRefresco?.Stop();
         }
 
         private void CargarCatalogosFiltros()
@@ -81,7 +103,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         while (reader.Read())
                         {
-                            ListaEstatus.Add(new ItemFiltro { Id = reader.GetInt32(0), Descripcion = reader.GetString(1) });
+                            ListaEstatus.Add(new ItemFiltro { Id = Convert.ToInt32(reader[0]), Descripcion = reader[1].ToString() });
                         }
                     }
                     EstadoSeleccionado = -1;
@@ -96,7 +118,7 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                     {
                         while (reader.Read())
                         {
-                            ListaSedes.Add(new ItemFiltro { Id = reader.GetInt32(0), Descripcion = reader.GetString(1) });
+                            ListaSedes.Add(new ItemFiltro { Id = Convert.ToInt32(reader[0]), Descripcion = reader[1].ToString() });
                         }
                     }
                     SedeSeleccionada = -1;
@@ -124,24 +146,24 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         LEFT JOIN Cat_SAP s ON a.id_sap = s.Id_SAP
                         LEFT JOIN Estatus e ON a.Id_estatus = e.id_estatus
                         LEFT JOIN Descripcion_corta dc ON a.id_descripcionCorta = dc.id_descripcionCorta
-                        WHERE 1=1";
+                        WHERE a.Eliminado = 1";
 
                     if (!string.IsNullOrWhiteSpace(TextoBusqueda))
                     {
-                        sql += " AND (a.Nombre_oficio LIKE $texto OR dc.tipo_descripcion LIKE $texto OR CAST(a.Id_asunto AS TEXT) LIKE $texto)";
-                        command.Parameters.AddWithValue("$texto", "%" + TextoBusqueda.Trim() + "%");
+                        sql += " AND (a.Nombre_oficio LIKE @texto OR dc.tipo_descripcion LIKE @texto OR CAST(a.Id_asunto AS TEXT) LIKE @texto)";
+                        command.Parameters.AddWithValue("@texto", "%" + TextoBusqueda.Trim() + "%");
                     }
 
                     if (EstadoSeleccionado != -1)
                     {
-                        sql += " AND a.id_estatus = $idEstado";
-                        command.Parameters.AddWithValue("$idEstado", EstadoSeleccionado);
+                        sql += " AND a.id_estatus = @idEstado";
+                        command.Parameters.AddWithValue("@idEstado", EstadoSeleccionado);
                     }
 
                     if (SedeSeleccionada != -1)
                     {
-                        sql += " AND a.id_sap = $idSede";
-                        command.Parameters.AddWithValue("$idSede", SedeSeleccionada);
+                        sql += " AND a.id_sap = @idSede";
+                        command.Parameters.AddWithValue("@idSede", SedeSeleccionada);
                     }
 
                     command.CommandText = sql + " ORDER BY a.Id_asunto DESC";
@@ -152,12 +174,12 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                         {
                             ListaResultados.Add(new ResultadoConsultaModel
                             {
-                                Id = reader.GetInt32(0),
-                                TituloAsunto = reader.IsDBNull(1) ? "SIN TÍTULO" : reader.GetString(1),
-                                CategoriaCorta = reader.IsDBNull(2) ? "General" : reader.GetString(2),
-                                SedeNombre = reader.IsDBNull(3) ? "N/A" : reader.GetString(3),
-                                EstatusNombre = reader.IsDBNull(4) ? "N/A" : reader.GetString(4),
-                                FechaLimite = reader.IsDBNull(5) ? "" : reader.GetString(5)
+                                Id = Convert.ToInt32(reader[0]),
+                                TituloAsunto = reader.IsDBNull(1) ? "SIN TÍTULO" : reader[1].ToString(),
+                                CategoriaCorta = reader.IsDBNull(2) ? "General" : reader[2].ToString(),
+                                SedeNombre = reader.IsDBNull(3) ? "N/A" : reader[3].ToString(),
+                                EstatusNombre = reader.IsDBNull(4) ? "N/A" : reader[4].ToString(),
+                                FechaLimite = reader.IsDBNull(5) ? "" : reader[5].ToString()
                             });
                         }
                     }

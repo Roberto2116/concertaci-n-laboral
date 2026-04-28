@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Proyecto_GRRLN_expediente.db;
 using Proyecto_GRRLN_expediente.modelos;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
@@ -72,37 +72,42 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             string miDepto = SesionGlobal.ClaveDepto;
 
             List<AvisoModel> listaAvisos = new List<AvisoModel>();
-            SqliteConnection conn = DatabaseConnection.GetConnection();
 
             try
             {
-                using (var command = conn.CreateCommand())
+                using (NpgsqlConnection conn = DatabaseConnection.GetConnection())
                 {
-                    command.CommandText = @"
+                    if (conn == null) return;
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = @"
                         SELECT Id_mensaje, ficha, mensaje_enviado, fecha_posteo, Tipo_alcance 
                         FROM Mensaje 
-                        WHERE IFNULL(Archivado, 0) = 0 AND ( 
-                             (Tipo_alcance = 'PERSONAL' AND Ficha_destino = $ficha)
-                          OR (Tipo_alcance = 'DEPTO' AND clave_depto_destino = $depto)
+                        WHERE COALESCE(Archivado, 0) = 0 AND ( 
+                             (Tipo_alcance = 'PERSONAL' AND Ficha_destino = @ficha)
+                          OR (Tipo_alcance = 'DEPTO' AND clave_depto_destino = @depto)
                           OR (Tipo_alcance = 'SAP')
                         )
                         ORDER BY fecha_posteo DESC;";
 
-                    command.Parameters.AddWithValue("$ficha", miFicha ?? "");
-                    command.Parameters.AddWithValue("$depto", miDepto ?? "");
+                        command.Parameters.AddWithValue("@ficha", miFicha ?? "");
+                        if (int.TryParse(miDepto, out int deptoInt)) command.Parameters.AddWithValue("@depto", deptoInt);
+                        else command.Parameters.AddWithValue("@depto", DBNull.Value);
 
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
+                        using (var reader = command.ExecuteReader())
                         {
-                            listaAvisos.Add(new AvisoModel
+                            while (reader.Read())
                             {
-                                IdMensaje = reader.GetInt32(0),
-                                Emisor = "De: " + reader.GetString(1),
-                                TextoMensaje = reader.GetString(2),
-                                Fecha = reader.GetString(3),
-                                TipoAlcance = reader.GetString(4)
-                            });
+                                listaAvisos.Add(new AvisoModel
+                                {
+                                    IdMensaje = Convert.ToInt32(reader[0]),
+                                    Emisor = "De: " + reader[1].ToString(),
+                                    TextoMensaje = reader[2].ToString(),
+                                    Fecha = reader[3].ToString(),
+                                    TipoAlcance = reader[4].ToString()
+                                });
+                            }
                         }
                     }
                 }
@@ -122,10 +127,6 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             {
                 Console.WriteLine($"Error silencioso al cargar avisos: {ex.Message}");
             }
-            finally
-            {
-                DatabaseConnection.CloseConnection();
-            }
         }
 
         private void ExecuteArchivar(object parameter)
@@ -134,14 +135,16 @@ namespace Proyecto_GRRLN_expediente.ViewModels
             {
                 try
                 {
-                    SqliteConnection conn = DatabaseConnection.GetConnection();
-                    if (conn == null) return;
-
-                    using (var command = conn.CreateCommand())
+                    using (NpgsqlConnection conn = DatabaseConnection.GetConnection())
                     {
-                        command.CommandText = "UPDATE Mensaje SET Archivado = 1 WHERE Id_mensaje = $id";
-                        command.Parameters.AddWithValue("$id", mensajeSeleccionado.IdMensaje);
-                        command.ExecuteNonQuery();
+                        if (conn == null) return;
+
+                        using (var command = conn.CreateCommand())
+                        {
+                            command.CommandText = "UPDATE Mensaje SET Archivado = 1 WHERE Id_mensaje = @id";
+                            command.Parameters.AddWithValue("@id", mensajeSeleccionado.IdMensaje);
+                            command.ExecuteNonQuery();
+                        }
                     }
 
                     CargarBandejaAvisos();
@@ -150,10 +153,6 @@ namespace Proyecto_GRRLN_expediente.ViewModels
                 {
                     MessageBox.Show($"Error al archivar el mensaje:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                finally
-                {
-                    DatabaseConnection.CloseConnection();
-                }
             }
         }
 
@@ -161,26 +160,29 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         {
             try
             {
-                SqliteConnection conn = DatabaseConnection.GetConnection();
-                if (conn == null) return;
-
-                string miFicha = SesionGlobal.Ficha;
-                string miDepto = SesionGlobal.ClaveDepto;
-
-                using (var command = conn.CreateCommand())
+                using (NpgsqlConnection conn = DatabaseConnection.GetConnection())
                 {
-                    command.CommandText = @"
+                    if (conn == null) return;
+
+                    string miFicha = SesionGlobal.Ficha;
+                    string miDepto = SesionGlobal.ClaveDepto;
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = @"
                         UPDATE Mensaje 
                         SET Archivado = 1 
-                        WHERE IFNULL(Archivado, 0) = 0 AND ( 
-                             (Tipo_alcance = 'PERSONAL' AND Ficha_destino = $ficha)
-                          OR (Tipo_alcance = 'DEPTO' AND clave_depto_destino = $depto)
+                        WHERE COALESCE(Archivado, 0) = 0 AND ( 
+                             (Tipo_alcance = 'PERSONAL' AND Ficha_destino = @ficha)
+                          OR (Tipo_alcance = 'DEPTO' AND clave_depto_destino = @depto)
                           OR (Tipo_alcance = 'SAP')
                         )";
 
-                    command.Parameters.AddWithValue("$ficha", miFicha ?? "");
-                    command.Parameters.AddWithValue("$depto", miDepto ?? "");
-                    command.ExecuteNonQuery();
+                        command.Parameters.AddWithValue("@ficha", miFicha ?? "");
+                        if (int.TryParse(miDepto, out int deptoInt2)) command.Parameters.AddWithValue("@depto", deptoInt2);
+                        else command.Parameters.AddWithValue("@depto", DBNull.Value);
+                        command.ExecuteNonQuery();
+                    }
                 }
 
                 CargarBandejaAvisos();

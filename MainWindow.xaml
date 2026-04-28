@@ -11,6 +11,10 @@
         WindowBackdropType="Mica"
         Background="Transparent">
 
+    <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </ui:FluentWindow.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -42,7 +46,8 @@
 
                     <ui:Button x:Name="BtnNuevoCaso" Content="NUEVO ASUNTO" Icon="AddDocument24" 
                                Appearance="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
-                               Height="45" Margin="0,5" FontWeight="SemiBold" Command="{Binding NavegarNuevoCasoCommand}"/>
+                               Height="45" Margin="0,5" FontWeight="SemiBold" Command="{Binding NavegarNuevoCasoCommand}"
+                               Visibility="{Binding IsCapturaVisible, Converter={StaticResource BoolToVis}}"/>
 
                     <ui:Button x:Name="Btnconsultas" Content="CONSULTA GENERAL" Icon="Search24" 
                                Appearance="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
@@ -55,7 +60,8 @@
                     <Separator Margin="0,20" Background="#EAEDED"/>
 
                     <Button x:Name="BtnNuevoAvisoGlobal" Height="45" Margin="0,5" HorizontalAlignment="Stretch" 
-                            Cursor="Hand" Command="{Binding NavegarNuevoAvisoCommand}">
+                            Cursor="Hand" Command="{Binding NavegarNuevoAvisoCommand}"
+                            Visibility="{Binding IsCapturaVisible, Converter={StaticResource BoolToVis}}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="FondoBoton" Background="#00843D" CornerRadius="4">
@@ -81,7 +87,8 @@
                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" 
                                Height="45" Margin="0,40,0,5" FontWeight="Black" 
                                ToolTip="Acceso restringido: Solo Administradores"
-                               Command="{Binding NavegarAdministracionCommand}">
+                               Command="{Binding NavegarAdministracionCommand}"
+                               Visibility="{Binding IsAdminVisible, Converter={StaticResource BoolToVis}}">
 
                         <ui:Button.Icon>
                             <ui:SymbolIcon Symbol="ShieldKeyhole24" Foreground="#FBBF24" FontSize="32"/>
