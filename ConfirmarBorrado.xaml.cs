@@ -21,4 +21,4 @@ namespace Proyecto_GRRLN_expediente
             TxtPasswordConfirm.Focus();
         }
     }
-}
+}

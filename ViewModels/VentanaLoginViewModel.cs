@@ -2,13 +2,16 @@ using System;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Input;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
+using System.Windows.Media;
 using Npgsql;
 using Proyecto_GRRLN_expediente.db;
 using Proyecto_GRRLN_expediente.ViewModels.Base;
 
 namespace Proyecto_GRRLN_expediente.ViewModels
 {
-    public class VentanaLoginViewModel : ViewModelBase
+    public class VentanaLoginViewModel : ViewModelBase, IDisposable
     {
         private string _usuario;
         private string _mensajeError;
@@ -44,10 +47,47 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         public Action AbrirMainWindowAction { get; set; }
         public Action CerrarVentanaAction { get; set; }
 
+        // Propiedades del Semáforo
+        private Brush _colorConexion = Brushes.Gray;
+        public Brush ColorConexion { get => _colorConexion; set => SetProperty(ref _colorConexion, value); }
+
+        private string _diagnosticoDetallado = "Verificando conexión...";
+        public string DiagnosticoDetallado { get => _diagnosticoDetallado; set => SetProperty(ref _diagnosticoDetallado, value); }
+
+        public ICommand VerDiagnosticoCommand { get; }
+
         public VentanaLoginViewModel()
         {
             EntrarCommand = new RelayCommand(ExecuteEntrar);
             SalirCommand = new RelayCommand(ExecuteSalir);
+            VerDiagnosticoCommand = new RelayCommand(_ => MessageBox.Show(DiagnosticoDetallado, "Diagnóstico de Red", MessageBoxButton.OK, MessageBoxImage.Information));
+
+            // Escuchar cambios de red
+            NetworkChange.NetworkAvailabilityChanged += (s, e) => ActualizarEstadoConexion();
+            
+            // Primera verificación
+            _ = ActualizarEstadoConexion();
+        }
+
+        private async Task ActualizarEstadoConexion()
+        {
+            var resultado = await ServicioConexion.ValidarConexionAsync();
+            
+            Application.Current.Dispatcher.Invoke(() => {
+                DiagnosticoDetallado = resultado.Detalle;
+                switch (resultado.Estado)
+                {
+                    case TipoEstadoConexion.Conectado:
+                        ColorConexion = new SolidColorBrush(Color.FromRgb(0, 132, 61)); // Verde Pemex
+                        break;
+                    case TipoEstadoConexion.Limitado:
+                        ColorConexion = Brushes.Orange;
+                        break;
+                    case TipoEstadoConexion.Desconectado:
+                        ColorConexion = new SolidColorBrush(Color.FromRgb(200, 16, 46)); // Rojo Pemex
+                        break;
+                }
+            });
         }
 
         private void ExecuteEntrar(object parameter)
@@ -203,6 +243,11 @@ namespace Proyecto_GRRLN_expediente.ViewModels
         private void ExecuteSalir(object parameter)
         {
             Application.Current.Shutdown();
+        }
+
+        public void Dispose()
+        {
+            NetworkChange.NetworkAvailabilityChanged -= (s, e) => ActualizarEstadoConexion();
         }
     }
 }

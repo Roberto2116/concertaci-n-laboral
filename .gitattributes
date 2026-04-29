@@ -1,0 +1,7 @@
+# Evitar que Git cambie los archivos de ClickOnce para evitar errores de Hash
+*.application binary
+*.manifest binary
+*.deploy binary
+*.exe binary
+*.dll binary
+*.pfx binary

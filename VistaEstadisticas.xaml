@@ -6,7 +6,7 @@
                  xmlns:gauge="clr-namespace:Syncfusion.UI.Xaml.Gauges;assembly=Syncfusion.SfGauge.WPF"
                  Title="Dashboard de Estadísticas Institucionales" 
                  Height="720" Width="1280" WindowStartupLocation="CenterScreen" WindowState="Maximized" 
-                 ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" Background="#F0F4F8">
+                 ExtendsContentIntoTitleBar="True" WindowBackdropType="None" Background="#F0F4F8">
 
     <ui:FluentWindow.Resources>
         <Storyboard x:Key="ShowPanelDetailsStoryboard">
@@ -36,13 +36,13 @@
         </Storyboard>
     </ui:FluentWindow.Resources>
 
-    <Grid>
+    <Grid Background="#F0F4F8">
         <Grid.RowDefinitions>
             <RowDefinition Height="45"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1" Margin="30,10,30,30">
+        <Grid Grid.Row="1" Margin="20,10,20,20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>

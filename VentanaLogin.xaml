@@ -86,5 +86,24 @@
             <ui:Button Content="Cerrar aplicación" Appearance="Transparent" Foreground="#7F8C8D" HorizontalAlignment="Center" Cursor="Hand" Command="{Binding SalirCommand}"/>
 
         </StackPanel>
+
+        <!-- Semáforo de Conexión -->
+        <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
+                Margin="15,0,0,15" Background="Transparent" BorderThickness="0"
+                Command="{Binding VerDiagnosticoCommand}" Cursor="Hand"
+                ToolTip="Estado de la conexión a la nube">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="12" Height="12" Fill="{Binding ColorConexion}" Margin="0,0,8,0">
+                            <Ellipse.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Gray" Opacity="0.5"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <TextBlock Text="Estado del Sistema" FontSize="10" Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
     </Grid>
 </ui:FluentWindow>
